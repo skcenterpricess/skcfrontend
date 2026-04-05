@@ -63,11 +63,11 @@ export default function HomePage() {
         <div className="relative grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <div className="space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/8 px-4 py-2 text-xs uppercase tracking-[0.28em] text-cyan-200 backdrop-blur">
-              Creative Portfolio Landing
+              HAR DARWAZE KI MAJBOOTI, HAMARI PEHCHAN
             </div>
             <div className="space-y-4">
               <p className="text-sm font-medium uppercase tracking-[0.3em] text-cyan-200/90">
-                Header Slider
+                SKC HARWARE
               </p>
               <h1 className="max-w-2xl text-4xl font-black leading-tight text-white sm:text-5xl lg:text-6xl">
                 {currentSlide?.heading ?? heroFallback.heading}

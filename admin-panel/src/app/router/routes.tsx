@@ -16,12 +16,9 @@ import CreateAchievementPage from '@/pages/landpage/Achievements/create.acheivem
 import ListAchievementPage from '@/pages/landpage/Achievements/list.achievement'
 import EditAchievementPage from '@/pages/landpage/Achievements/edit.view.achievement'
 import AddPageFormPage from '@/pages/AddPageFormPage'
-import ContactPage from '@/pages/contact'
 import DashboardPage from '@/pages/DashboardPage'
 import LoginPage from '@/pages/LoginPage'
-import LeadsPage from '@/pages/lead/LeadsPage'
 import NotFoundPage from '@/pages/NotFoundPage'
-import ProductsPage from '@/pages/product'
 import CreateProductPage from '@/pages/product/create.product'
 import ProductListPage from '@/pages/product/product.list'
 import EditProductPage from '@/pages/product/edit.view.product'
@@ -171,7 +168,7 @@ export const router = createBrowserRouter([
         path: 'contact',
         element: (
           <RoleProtectedRoute roles={['superadmin', 'admin']}>
-            <ContactPage />
+            <Navigate to="/contact/list" replace />
           </RoleProtectedRoute>
         ),
       },
@@ -195,7 +192,7 @@ export const router = createBrowserRouter([
         path: 'leads',
         element: (
           <RoleProtectedRoute roles={['superadmin', 'admin']}>
-            <LeadsPage />
+            <Navigate to="/leads/list" replace />
           </RoleProtectedRoute>
         ),
       },
@@ -227,7 +224,7 @@ export const router = createBrowserRouter([
         path: 'products',
         element: (
           <RoleProtectedRoute roles={['superadmin', 'admin']}>
-            <ProductsPage />
+            <Navigate to="/products/list" replace />
           </RoleProtectedRoute>
         ),
       },
