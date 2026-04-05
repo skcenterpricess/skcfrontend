@@ -79,10 +79,7 @@ export default function HomePage() {
 
             <div className="flex flex-wrap gap-3 text-sm">
               <span className="rounded-full bg-white/10 px-4 py-2 text-cyan-100 ring-1 ring-white/10">
-                Live content enabled
-              </span>
-              <span className="rounded-full bg-white/10 px-4 py-2 text-cyan-100 ring-1 ring-white/10">
-                Products, achievements, testimonials
+                Live products, pricing, stock, and version details
               </span>
               {usesMockFallback.any && (
                 <span className="rounded-full bg-amber-300/20 px-4 py-2 text-amber-100 ring-1 ring-amber-200/30">
