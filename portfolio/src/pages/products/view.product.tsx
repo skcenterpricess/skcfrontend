@@ -1,0 +1,425 @@
+import { useEffect, useMemo, useState } from 'react'
+import type { FormEvent } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { shopService } from '@/features/shop/services/shopService'
+import type { Product } from '@/shared/types/content'
+import type { Review } from '@/shared/types/shop'
+
+export default function ProductDetailPage() {
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const [product, setProduct] = useState<Product | null>(null)
+  const [activeImageIndex, setActiveImageIndex] = useState(0)
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [loading, setLoading] = useState(true)
+  const [reviewsLoading, setReviewsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [reviewError, setReviewError] = useState<string | null>(null)
+  const [quantity, setQuantity] = useState(1)
+  const [addedMessage, setAddedMessage] = useState<string | null>(null)
+  const [rating, setRating] = useState(5)
+  const [title, setTitle] = useState('')
+  const [comment, setComment] = useState('')
+  const [submittingReview, setSubmittingReview] = useState(false)
+
+  const loadProduct = async () => {
+    if (!id) {
+      setError('Product id is missing')
+      setLoading(false)
+      return
+    }
+
+    try {
+      setLoading(true)
+      const [record, reviewResult] = await Promise.all([
+        shopService.getProductById(id),
+        shopService.listReviewsByProduct(id, 1, 10),
+      ])
+      setProduct(record)
+      setReviews(reviewResult.records)
+      setError(null)
+      setReviewError(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load product')
+    } finally {
+      setLoading(false)
+      setReviewsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadProduct()
+  }, [id])
+
+  useEffect(() => {
+    setActiveImageIndex(0)
+  }, [product?._id])
+
+  const visibleRating = useMemo(() => (product?.avgRating ?? 0).toFixed(1), [product?.avgRating])
+  const productImages = product?.images?.length ? product.images : []
+  const activeProductImage = productImages[activeImageIndex] ?? productImages[0]
+
+  const addToCart = async () => {
+    if (!product) return
+    try {
+      await shopService.addToCart(product._id, quantity)
+      setAddedMessage('Added to cart. Open the cart page to manage checkout.')
+      setReviewError(null)
+    } catch (err) {
+      setReviewError(err instanceof Error ? err.message : 'Please sign in as lead to add cart items')
+    }
+  }
+
+  const submitReview = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!product) return
+
+    try {
+      setSubmittingReview(true)
+      await shopService.createReview(product._id, { rating, title, comment })
+      const reviewResult = await shopService.listReviewsByProduct(product._id, 1, 10)
+      setReviews(reviewResult.records)
+      setTitle('')
+      setComment('')
+      setRating(5)
+      setReviewError(null)
+      setAddedMessage('Review submitted successfully')
+    } catch (err) {
+      setReviewError(err instanceof Error ? err.message : 'Only purchased customers can submit reviews')
+    } finally {
+      setSubmittingReview(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <section className="ui-page-card">
+        <div className="h-6 w-40 animate-pulse rounded-full bg-slate-200" />
+        <div className="mt-4 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="rounded-3xl bg-slate-100 p-6">
+            <div className="h-[26rem] animate-pulse rounded-3xl bg-slate-200" />
+          </div>
+          <div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-6">
+            <div className="h-5 w-3/4 animate-pulse rounded-full bg-slate-200" />
+            <div className="h-8 w-1/2 animate-pulse rounded-full bg-slate-200" />
+            <div className="h-20 animate-pulse rounded-2xl bg-slate-100" />
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  if (error || !product) {
+    return (
+      <section className="ui-page-card space-y-4 text-center">
+        <h2 className="ui-title">Product not found</h2>
+        <p className="ui-subtitle">{error ?? 'The product you requested is not available.'}</p>
+        <div className="flex justify-center gap-3">
+          <button className="ui-btn-secondary" onClick={() => navigate(-1)}>
+            Go back
+          </button>
+          <Link className="ui-btn-primary" to="/projects">
+            Browse products
+          </Link>
+        </div>
+      </section>
+    )
+  }
+
+  const stockLabel =
+    product.stok > 25 ? 'In stock' : product.stok > 0 ? 'Limited stock' : 'Out of stock'
+
+  return (
+    <section className="space-y-6 pb-4">
+      <div className="rounded-[2rem] bg-slate-950 px-6 py-6 text-white shadow-[0_24px_90px_rgba(15,23,42,0.22)] sm:px-8">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs uppercase tracking-[0.24em] text-cyan-200">Product Detail</p>
+            <h2 className="mt-2 text-3xl font-black sm:text-4xl">Flipkart-level product view</h2>
+          </div>
+          <div className="rounded-full bg-white/10 px-4 py-2 text-sm text-cyan-100 ring-1 ring-white/10">
+            {product.size}
+            {product.version ? ` · ${product.version}` : ''}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="space-y-6">
+          <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="relative overflow-hidden rounded-[1.6rem] bg-gradient-to-br from-cyan-50 via-white to-slate-100 p-6">
+              <div className="absolute left-6 top-6 rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold text-white">
+                {stockLabel}
+              </div>
+              <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr] lg:items-center">
+                <div className="space-y-4">
+                  <div className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-sm">
+                    {activeProductImage ? (
+                      <img
+                        src={activeProductImage.url}
+                        alt={product.name}
+                        className="h-[22rem] w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-[22rem] items-center justify-center bg-slate-100 text-sm font-medium text-slate-500">
+                        No product images available
+                      </div>
+                    )}
+
+                    {productImages.length > 1 ? (
+                      <div className="grid grid-cols-4 gap-2 border-t border-slate-200 bg-white p-3 sm:grid-cols-5">
+                        {productImages.map((image, index) => (
+                          <button
+                            key={image.public_id}
+                            type="button"
+                            onClick={() => setActiveImageIndex(index)}
+                            className={`overflow-hidden rounded-xl border-2 transition ${
+                              index === activeImageIndex ? 'border-cyan-500' : 'border-transparent hover:border-slate-300'
+                            }`}
+                          >
+                            <img src={image.url} alt={`${product.name} thumbnail ${index + 1}`} className="h-20 w-full object-cover" />
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <p className="text-xs uppercase tracking-[0.22em] text-cyan-700">SKU preview</p>
+                  <h1 className="text-3xl font-black leading-tight text-slate-950 sm:text-4xl">{product.name}</h1>
+                  <p className="max-w-2xl text-base leading-7 text-slate-600">{product.description}</p>
+
+                  <div className="flex flex-wrap gap-3 text-sm">
+                    <span className="rounded-full bg-white px-4 py-2 font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200">
+                      Rating {visibleRating} / 5
+                    </span>
+                    <span className="rounded-full bg-white px-4 py-2 font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200">
+                      {product.ratingCount || 0} reviews
+                    </span>
+                    <span className="rounded-full bg-white px-4 py-2 font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200">
+                      {product.stok} units left
+                    </span>
+                  </div>
+                </div>
+
+                <div className="rounded-[1.6rem] bg-slate-900 p-5 text-white shadow-2xl">
+                  <div className="flex items-end justify-between gap-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.24em] text-cyan-200">Best offer</p>
+                      <p className="mt-2 text-4xl font-black">Rs. {product.coopan_price}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Marked</p>
+                      <p className="mt-2 text-lg text-slate-400 line-through">Rs. {product.marked_price}</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 rounded-2xl bg-white/10 p-4 text-sm text-slate-100 ring-1 ring-white/10">
+                    Base price Rs. {product.base_price}
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                    <div className="rounded-2xl bg-white/10 p-3 ring-1 ring-white/10">
+                      <p className="text-xs uppercase tracking-[0.2em] text-cyan-200">Stock</p>
+                      <p className="mt-1 text-lg font-semibold">{stockLabel}</p>
+                    </div>
+                    <div className="rounded-2xl bg-white/10 p-3 ring-1 ring-white/10">
+                      <p className="text-xs uppercase tracking-[0.2em] text-cyan-200">Status</p>
+                      <p className="mt-1 text-lg font-semibold">{product.isActive ? 'Live' : 'Inactive'}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 className="text-2xl font-black text-slate-950">Product highlights</h3>
+                <p className="mt-1 text-sm text-slate-600">Sized for quick scan, styled for premium browsing.</p>
+              </div>
+              <button className="ui-btn-secondary" onClick={() => navigate(-1)}>
+                Back
+              </button>
+            </div>
+
+            <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Price</p>
+                <p className="mt-2 text-xl font-bold text-slate-950">Rs. {product.coopan_price}</p>
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Offer gap</p>
+                <p className="mt-2 text-xl font-bold text-slate-950">
+                  Rs. {Math.max(0, product.marked_price - product.coopan_price)} off
+                </p>
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Review score</p>
+                <p className="mt-2 text-xl font-bold text-slate-950">{visibleRating} / 5</p>
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Reviews</p>
+                <p className="mt-2 text-xl font-bold text-slate-950">{product.ratingCount || 0}</p>
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl border border-slate-200 p-4">
+                <p className="text-sm font-semibold text-slate-900">Shipping promise</p>
+                <p className="mt-1 text-sm leading-6 text-slate-600">
+                  No online payment is required. Once you place the order, the sales team will contact you shortly.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 p-4">
+                <p className="text-sm font-semibold text-slate-900">Purchase intent</p>
+                <p className="mt-1 text-sm leading-6 text-slate-600">
+                  Only verified purchasers can submit product reviews after buying this product.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-2xl font-black text-slate-950">Customer reviews</h3>
+                <p className="mt-1 text-sm text-slate-600">Read recent feedback and submit your own after purchase.</p>
+              </div>
+              <span className="rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-700 ring-1 ring-cyan-100">
+                {reviews.length} visible
+              </span>
+            </div>
+
+            {reviewError ? (
+              <p className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{reviewError}</p>
+            ) : null}
+            {addedMessage ? (
+              <p className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">{addedMessage}</p>
+            ) : null}
+
+            <form className="mt-5 grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4" onSubmit={submitReview}>
+              <div className="grid gap-3 md:grid-cols-[180px_1fr]">
+                <select className="ui-input mt-0" value={rating} onChange={(event) => setRating(Number(event.target.value))}>
+                  {[5, 4, 3, 2, 1].map((value) => (
+                    <option key={value} value={value}>
+                      {value} star
+                    </option>
+                  ))}
+                </select>
+                <input
+                  className="ui-input mt-0"
+                  placeholder="Review title"
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                />
+              </div>
+              <textarea
+                className="ui-textarea mt-0"
+                rows={4}
+                placeholder="Write a short, useful review"
+                value={comment}
+                onChange={(event) => setComment(event.target.value)}
+                required
+              />
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-xs text-slate-500">
+                  Review only becomes public after purchase verification in the backend.
+                </p>
+                <button className="ui-btn-primary" type="submit" disabled={submittingReview}>
+                  {submittingReview ? 'Submitting...' : 'Submit review'}
+                </button>
+              </div>
+            </form>
+
+            <div className="mt-6 space-y-4">
+              {reviewsLoading ? (
+                <div className="rounded-2xl border border-slate-200 p-4 text-sm text-slate-500">Loading reviews...</div>
+              ) : reviews.length > 0 ? (
+                reviews.map((review) => (
+                  <article key={review._id} className="rounded-2xl border border-slate-200 p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="font-semibold text-slate-950">
+                        {review.title || 'Verified review'}
+                      </p>
+                      <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+                        {review.rating} / 5
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">{review.comment}</p>
+                    <p className="mt-3 text-xs text-slate-500">By {review.leadId?.name || 'Customer'}</p>
+                  </article>
+                ))
+              ) : (
+                <div className="rounded-2xl border border-dashed border-slate-300 p-5 text-sm text-slate-600">
+                  No visible reviews yet.
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
+
+        <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
+          <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+            <p className="text-xs uppercase tracking-[0.24em] text-cyan-700">Purchase box</p>
+            <h3 className="mt-2 text-2xl font-black text-slate-950">Buy now, pay later</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              The order goes directly to the sales team and you’ll be contacted shortly.
+            </p>
+
+            <div className="mt-5 grid gap-3 rounded-2xl bg-slate-50 p-4">
+              <label className="text-sm font-medium text-slate-700">Quantity</label>
+              <div className="flex items-center gap-3">
+                <button
+                  className="ui-btn-secondary h-10 w-10 px-0"
+                  onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+                  type="button"
+                >
+                  -
+                </button>
+                <div className="flex h-10 min-w-16 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-900">
+                  {quantity}
+                </div>
+                <button
+                  className="ui-btn-secondary h-10 w-10 px-0"
+                  onClick={() => setQuantity((prev) => Math.min(product.stok || 1, prev + 1))}
+                  type="button"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-5 space-y-3">
+              <button className="ui-btn-primary w-full" onClick={addToCart} disabled={product.stok <= 0}>
+                {product.stok <= 0 ? 'Out of stock' : 'Add to cart'}
+              </button>
+              <Link to="/cart" className="ui-btn-secondary block text-center">
+                Go to cart
+              </Link>
+              <Link to="/projects" className="ui-btn-secondary block text-center">
+                Back to catalog
+              </Link>
+            </div>
+
+            <div className="mt-5 space-y-2 text-sm text-slate-600">
+              <p>Direct sales follow-up</p>
+              <p>Verified reviews only</p>
+              <p>Stock-aware add to cart</p>
+            </div>
+          </section>
+
+          <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+            <p className="text-xs uppercase tracking-[0.24em] text-cyan-700">Why it stands out</p>
+            <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
+              <li className="rounded-2xl bg-slate-50 p-3">Premium gradient hero with clear hierarchy.</li>
+              <li className="rounded-2xl bg-slate-50 p-3">Sticky purchase box for fast conversion.</li>
+              <li className="rounded-2xl bg-slate-50 p-3">Review-first trust signals and visible stock cues.</li>
+              <li className="rounded-2xl bg-slate-50 p-3">No online payment friction, sales-led order completion.</li>
+            </ul>
+          </section>
+        </aside>
+      </div>
+    </section>
+  )
+}

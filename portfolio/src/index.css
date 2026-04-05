@@ -16,3 +16,61 @@ body {
   color: #0f172a;
   background: #f8fafc;
 }
+
+@layer components {
+  .ui-page-card {
+    @apply rounded-2xl border border-slate-200 bg-white p-8 shadow-sm;
+  }
+
+  .ui-page-card-narrow {
+    @apply mx-auto w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-8 shadow-sm;
+  }
+
+  .ui-title {
+    @apply text-2xl font-semibold text-slate-900;
+  }
+
+  .ui-subtitle {
+    @apply mt-2 text-sm leading-6 text-slate-600;
+  }
+
+  .ui-form-grid {
+    @apply mt-6 grid gap-4;
+  }
+
+  .ui-label {
+    @apply text-sm font-medium text-slate-700;
+  }
+
+  .ui-input {
+    @apply mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200;
+  }
+
+  .ui-textarea {
+    @apply mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200;
+  }
+
+  .ui-btn-primary {
+    @apply rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .ui-btn-secondary {
+    @apply rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50;
+  }
+
+  .ui-link-inline {
+    @apply font-semibold text-slate-900 underline;
+  }
+
+  .ui-status-error {
+    @apply text-sm text-rose-600;
+  }
+
+  .ui-status-success {
+    @apply text-sm text-emerald-700;
+  }
+
+  .ui-status-info {
+    @apply text-sm text-slate-700;
+  }
+}

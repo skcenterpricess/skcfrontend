@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import axios from 'axios'
 import { useAuth } from '@/features/auth/context/AuthContext'
 
 export default function LoginPage() {
@@ -19,8 +20,12 @@ export default function LoginPage() {
     try {
       await login({ email, password })
       navigate('/dashboard', { replace: true })
-    } catch {
-      setError('Invalid credentials or session issue.')
+    } catch (err) {
+      if (axios.isAxiosError<{ message?: string }>(err)) {
+        setError(err.response?.data?.message || 'Invalid credentials or session issue.')
+      } else {
+        setError('Invalid credentials or session issue.')
+      }
     } finally {
       setIsLoading(false)
     }

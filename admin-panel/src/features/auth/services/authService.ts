@@ -3,8 +3,8 @@ import type { AuthUser, LoginPayload } from '@/shared/types/auth'
 
 export const authService = {
   async login(payload: LoginPayload): Promise<AuthUser> {
-    const response = await httpClient.post<{ user: AuthUser }>('/auth/login', payload)
-    return response.data.user
+    const response = await httpClient.post<{ data: { user: AuthUser } }>('/auth/login', payload)
+    return response.data.data.user
   },
 
   async refresh(): Promise<void> {
@@ -16,7 +16,7 @@ export const authService = {
   },
 
   async me(): Promise<AuthUser> {
-    const response = await httpClient.get<{ user: AuthUser }>('/auth/me')
-    return response.data.user
+    const response = await httpClient.get<{ data: { user: AuthUser } }>('/auth/me')
+    return response.data.data.user
   },
 }

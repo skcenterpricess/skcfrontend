@@ -10,6 +10,26 @@ import type { ReactNode } from 'react'
 import { authService } from '@/features/auth/services/authService'
 import type { AuthUser, LoginPayload } from '@/shared/types/auth'
 
+function canonicalizeRole(rawRole: string): AuthUser['role'] {
+  const normalized = String(rawRole || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, '')
+
+  if (normalized === 'superadmin') return 'superadmin'
+  if (normalized === 'superadim') return 'superadmin'
+  if (normalized === 'admin' || normalized === 'user' || normalized === 'manager') return 'admin'
+
+  return 'admin'
+}
+
+function normalizeAuthUser(user: AuthUser): AuthUser {
+  return {
+    ...user,
+    role: canonicalizeRole(String(user.role || '')),
+  }
+}
+
 interface AuthContextValue {
   user: AuthUser | null
   isAuthenticated: boolean
@@ -28,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const bootstrap = useCallback(async () => {
     try {
       const me = await authService.me()
-      setUser(me)
+      setUser(normalizeAuthUser(me))
     } catch {
       setUser(null)
     } finally {
@@ -48,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (payload: LoginPayload) => {
     const loggedInUser = await authService.login(payload)
-    setUser(loggedInUser)
+    setUser(normalizeAuthUser(loggedInUser))
   }, [])
 
   const logout = useCallback(async () => {
@@ -62,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => {
     await authService.refresh()
     const me = await authService.me()
-    setUser(me)
+    setUser(normalizeAuthUser(me))
   }, [])
 
   const value = useMemo(

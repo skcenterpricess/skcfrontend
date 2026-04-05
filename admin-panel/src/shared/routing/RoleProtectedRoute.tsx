@@ -4,12 +4,16 @@ import { useAuth } from '@/features/auth/context/AuthContext'
 
 export function RoleProtectedRoute({
   children,
-  role,
+  roles,
 }: {
   children: ReactNode
-  role: 'admin' | 'user'
+  roles: Array<'superadmin' | 'admin' | 'user'>
 }) {
   const { isAuthenticated, isBootstrapping, user } = useAuth()
+  const normalizedUserRole = String(user?.role || '')
+    .trim()
+    .toLowerCase()
+  const normalizedAllowedRoles = roles.map((role) => role.trim().toLowerCase())
 
   if (isBootstrapping) {
     return <div className="p-8 text-slate-500">Loading session...</div>
@@ -19,7 +23,11 @@ export function RoleProtectedRoute({
     return <Navigate to="/login" replace />
   }
 
-  if (user?.role !== role) {
+  if (normalizedUserRole === 'superadmin') {
+    return <>{children}</>
+  }
+
+  if (!normalizedUserRole || !normalizedAllowedRoles.includes(normalizedUserRole)) {
     return <Navigate to="/" replace />
   }
 
