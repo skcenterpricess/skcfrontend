@@ -34,6 +34,7 @@ function AppLayout() {
   const { isAuthenticated, logout, user } = useAuth()
   const { compactMode, setCompactMode } = useSessionPreferences()
   const location = useLocation()
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const isSuperadmin = String(user?.role || '')
     .trim()
     .toLowerCase() === 'superadmin'
@@ -67,6 +68,10 @@ function AppLayout() {
     })
   }, [location.pathname, visibleSidebarSections])
 
+  useEffect(() => {
+    setMobileNavOpen(false)
+  }, [location.pathname])
+
   const onToggleSection = (sectionTitle: string) => {
     setOpenSections((previous) => ({
       ...previous,
@@ -75,37 +80,68 @@ function AppLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-slate-100 p-4 lg:p-6">
-      <div className="mx-auto grid w-full max-w-7xl gap-4 lg:grid-cols-[260px_1fr]">
-        <aside className="rounded-2xl bg-slate-900 p-5 text-white shadow-lg lg:sticky lg:top-6 lg:h-[calc(100vh-3rem)]">
-          <div className="flex h-full min-h-0 flex-col gap-4">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.14),transparent_42%),radial-gradient(circle_at_bottom_right,rgba(15,23,42,0.08),transparent_35%)] bg-slate-100/70 p-3 sm:p-4 lg:p-6">
+      <div className="mx-auto mb-3 flex w-full max-w-7xl items-center justify-between rounded-2xl border border-white/70 bg-white/80 px-4 py-3 shadow-sm backdrop-blur lg:hidden">
+        <div>
+          <p className="text-[0.62rem] font-semibold uppercase tracking-[0.26em] text-emerald-600">SKC Admin</p>
+          <p className="text-sm font-semibold text-slate-900">Control Center</p>
+        </div>
+        <button
+          type="button"
+          className="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm"
+          onClick={() => setMobileNavOpen((previous) => !previous)}
+          aria-expanded={mobileNavOpen}
+          aria-controls="admin-sidebar"
+        >
+          Menu
+        </button>
+      </div>
+
+      {mobileNavOpen ? (
+        <button
+          type="button"
+          className="fixed inset-0 z-30 bg-slate-950/45 lg:hidden"
+          onClick={() => setMobileNavOpen(false)}
+          aria-label="Close navigation"
+        />
+      ) : null}
+
+      <div className="mx-auto grid w-full max-w-7xl gap-4 lg:grid-cols-[280px_1fr]">
+        <aside
+          id="admin-sidebar"
+          className={`fixed inset-y-0 left-0 z-40 w-[86vw] max-w-[320px] border-r border-white/10 bg-slate-950/95 p-5 text-white shadow-2xl backdrop-blur transition-transform duration-200 lg:w-auto lg:max-w-none lg:translate-x-0 lg:rounded-3xl lg:border lg:border-slate-700/60 lg:bg-slate-900 lg:shadow-xl lg:inset-auto lg:h-[calc(100vh-3rem)] lg:sticky lg:top-6 ${
+            mobileNavOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <div className="flex h-full min-h-0 flex-col gap-5">
             <div>
-              <p className="text-xs uppercase tracking-[0.24em] text-emerald-300">SKC Admin</p>
-              <h1 className="text-2xl font-bold">Control Center</h1>
+              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.26em] text-emerald-300">SKC Admin</p>
+              <h1 className="mt-1 text-2xl font-bold text-white">Control Center</h1>
+              <p className="mt-1 text-xs text-slate-300">Manage content, users, and operations</p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 text-sm">
+            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-2 text-sm">
               <button
-                className="rounded-md border border-white/20 px-3 py-1"
+                className="rounded-lg border border-white/20 px-3 py-1.5 text-xs font-medium text-slate-100 hover:bg-white/10"
                 onClick={() => setCompactMode(!compactMode)}
               >
                 Compact: {compactMode ? 'On' : 'Off'}
               </button>
               {isAuthenticated ? (
                 <button
-                  className="rounded-md bg-emerald-500 px-3 py-1 font-medium"
+                  className="rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-emerald-50 hover:bg-emerald-400"
                   onClick={() => logout()}
                 >
                   Logout {user?.name}
                 </button>
               ) : (
-                <Link className="rounded-md bg-emerald-500 px-3 py-1 font-medium" to="/login">
+                <Link className="rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-emerald-50 hover:bg-emerald-400" to="/login">
                   Login
                 </Link>
               )}
             </div>
 
-            <nav className="min-h-0 flex-1 space-y-5 overflow-y-auto pr-1 pt-2 text-sm">
+            <nav className="min-h-0 flex-1 space-y-5 overflow-y-auto pr-1 text-sm">
               {visibleSidebarSections.map((section) => (
                 <SidebarSection
                   key={section.title}
@@ -118,7 +154,7 @@ function AppLayout() {
           </div>
         </aside>
 
-        <main className={`${compactMode ? 'space-y-3' : 'space-y-5'} min-w-0`}>
+        <main className={`${compactMode ? 'space-y-3' : 'space-y-5'} min-w-0 rounded-3xl border border-slate-200/70 bg-white/85 p-3 shadow-sm backdrop-blur sm:p-4 lg:p-6`}>
           <Outlet />
         </main>
       </div>
@@ -127,6 +163,14 @@ function AppLayout() {
 }
 
 export const router = createBrowserRouter([
+  {
+    path: '/login',
+    element: (
+      <PublicOnlyRoute>
+        <LoginPage />
+      </PublicOnlyRoute>
+    ),
+  },
   {
     path: '/',
     element: <AppLayout />,
@@ -362,14 +406,6 @@ export const router = createBrowserRouter([
           <RoleProtectedRoute roles={['superadmin', 'admin']}>
             <SettingsPage />
           </RoleProtectedRoute>
-        ),
-      },
-      {
-        path: 'login',
-        element: (
-          <PublicOnlyRoute>
-            <LoginPage />
-          </PublicOnlyRoute>
         ),
       },
       { path: '*', element: <NotFoundPage /> },

@@ -218,7 +218,7 @@ export default function ProductsPage({ mode = 'full', editId }: { mode?: PageMod
               </p>
             </div>
             <button
-              className="rounded-lg bg-brand-700 px-4 py-2 text-sm font-medium text-white"
+              className="rounded-lg bg-admin-700 px-4 py-2 text-sm font-medium text-white hover:bg-admin-900"
               onClick={() => {
                 if (mode === 'list' || mode === 'full') {
                   navigate('/products/create')

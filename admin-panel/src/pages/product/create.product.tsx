@@ -238,7 +238,7 @@ export default function CreateProductPage() {
 					<button
 						type="submit"
 						disabled={isSubmitting}
-						className="rounded-lg bg-brand-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+						className="rounded-lg bg-admin-700 px-4 py-2 text-sm font-medium text-white hover:bg-admin-900 disabled:opacity-60"
 					>
 						{isSubmitting ? 'Saving...' : 'Save Product'}
 					</button>

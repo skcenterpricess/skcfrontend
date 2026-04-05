@@ -135,7 +135,7 @@ export default function ProductDetailPage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-[0.24em] text-cyan-200">Product Detail</p>
-            <h2 className="mt-2 text-3xl font-black sm:text-4xl">Flipkart-level product view</h2>
+            {/* <h2 className="mt-2 text-3xl font-black sm:text-4xl">Flipkart-level product view</h2> */}
           </div>
           <div className="rounded-full bg-white/10 px-4 py-2 text-sm text-cyan-100 ring-1 ring-white/10">
             {product.size}
