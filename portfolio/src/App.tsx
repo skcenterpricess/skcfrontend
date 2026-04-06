@@ -4,10 +4,12 @@ import { router } from '@/app/router/routes'
 
 function App() {
   return (
+    
     <AppProviders>
       <RouterProvider router={router} />
     </AppProviders>
-  )
+  
+  );
 }
 
 export default App
