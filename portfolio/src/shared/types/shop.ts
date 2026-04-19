@@ -1,7 +1,9 @@
 import type { Product } from '@/shared/types/content'
 
+type PopulatedProductRef = Partial<Product> & Pick<Product, '_id' | 'name'>
+
 export interface CartItem {
-  productId: Product
+  productId: PopulatedProductRef
   quantity: number
   unitPrice: number
   lineTotal: number
@@ -30,7 +32,7 @@ export interface ShippingAddress {
 }
 
 export interface OrderItem {
-  productId: Product
+  productId: PopulatedProductRef
   name: string
   quantity: number
   unitPrice: number

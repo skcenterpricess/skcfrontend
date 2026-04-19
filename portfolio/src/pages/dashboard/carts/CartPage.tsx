@@ -33,7 +33,7 @@ const validateCheckoutInput = (cart: Cart | null, shipping: ShippingAddress): st
     return 'Your cart is empty. Add items before placing an order.'
   }
 
-  const hasInvalidItem = cart.items.some((item) => item.quantity < 1 || item.quantity > Math.max(0, item.productId.stok))
+  const hasInvalidItem = cart.items.some((item) => item.quantity < 1 || item.quantity > Math.max(0, item.productId.stok ?? 0))
   if (hasInvalidItem) {
     return 'Cart quantities are out of sync with stock. Please update your cart and try again.'
   }
@@ -114,7 +114,7 @@ export default function CartPage() {
     const item = cart?.items.find((record) => record.productId._id === productId)
     if (!item) return
 
-    const nextQty = Math.min(Math.max(0, quantity), Math.max(0, item.productId.stok))
+    const nextQty = Math.min(Math.max(0, quantity), Math.max(0, item.productId.stok ?? 0))
 
     try {
       setIsCartMutating(true)
@@ -252,7 +252,7 @@ export default function CartPage() {
                         className="flex h-8 w-8 items-center justify-center rounded-full border border-surface-300 text-lg font-semibold text-surface-700 transition hover:bg-brand-700 hover:text-white"
                         onClick={() => updateCartQty(item.productId._id, item.quantity + 1)}
                         aria-label={`Increase quantity for ${item.productId.name}`}
-                        disabled={isCartMutating || isSubmitting || item.quantity >= item.productId.stok}
+                        disabled={isCartMutating || isSubmitting || item.quantity >= (item.productId.stok ?? 0)}
                       >
                         +
                       </button>

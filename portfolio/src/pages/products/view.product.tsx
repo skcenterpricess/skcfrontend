@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '@/features/auth/context/AuthContext'
-import { shopService } from '@/features/shop/services/shopService'
+import { getShopErrorDetails, shopService } from '@/features/shop/services/shopService'
 import { useCart } from '@/features/shop/context/CartContext'
 import type { Product } from '@/shared/types/content'
 import type { Review } from '@/shared/types/shop'
@@ -11,12 +11,14 @@ export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
-  const { getItemQty, addOrIncrement, setQuantity, pendingByProductId } = useCart()
+  const { getItemQty, addOrIncrement, setQuantity, pendingByProductId, isHydrated, isHydrating } = useCart()
   const [product, setProduct] = useState<Product | null>(null)
   const [activeImageIndex, setActiveImageIndex] = useState(0)
   const [reviews, setReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
   const [reviewsLoading, setReviewsLoading] = useState(true)
+  const [checkingPurchase, setCheckingPurchase] = useState(false)
+  const [hasPurchasedProduct, setHasPurchasedProduct] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [reviewError, setReviewError] = useState<string | null>(null)
   const [addedMessage, setAddedMessage] = useState<string | null>(null)
@@ -26,35 +28,86 @@ export default function ProductDetailPage() {
   const [submittingReview, setSubmittingReview] = useState(false)
   const isLeadLoggedIn = typeof window !== 'undefined' && !!sessionStorage.getItem('portfolio.lead.session')
   const canUseCart = isAuthenticated || isLeadLoggedIn
+  const canMutateCart = canUseCart && isHydrated
+  const canSubmitReview = isLeadLoggedIn && hasPurchasedProduct
 
-  const loadProduct = async () => {
+  useEffect(() => {
     if (!id) {
       setError('Product id is missing')
       setLoading(false)
+      setReviewsLoading(false)
       return
     }
 
-    try {
+    const controller = new AbortController()
+
+    const run = async () => {
       setLoading(true)
-      const [record, reviewResult] = await Promise.all([
-        shopService.getProductById(id),
-        shopService.listReviewsByProduct(id, 1, 10),
-      ])
-      setProduct(record)
-      setReviews(reviewResult.records)
-      setError(null)
+      setReviewsLoading(true)
       setReviewError(null)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load product')
-    } finally {
-      setLoading(false)
-      setReviewsLoading(false)
+      setAddedMessage(null)
+
+      try {
+        const [record, reviewResult] = await Promise.all([
+          shopService.getProductById(id, controller.signal),
+          shopService.listReviewsByProduct(id, 1, 10, controller.signal),
+        ])
+
+        setProduct(record)
+        setReviews(reviewResult.records)
+        setError(null)
+      } catch (err) {
+        const details = getShopErrorDetails(err, 'Failed to load product')
+        if (details.reason === 'network' && controller.signal.aborted) {
+          return
+        }
+        setError(details.message)
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false)
+          setReviewsLoading(false)
+        }
+      }
     }
-  }
+
+    void run()
+    return () => {
+      controller.abort()
+    }
+  }, [id])
 
   useEffect(() => {
-    loadProduct()
-  }, [id])
+    if (!id || !isLeadLoggedIn) {
+      setHasPurchasedProduct(false)
+      setCheckingPurchase(false)
+      return
+    }
+
+    let mounted = true
+
+    const run = async () => {
+      setCheckingPurchase(true)
+      try {
+        const purchased = await shopService.hasPurchasedProduct(id)
+        if (mounted) {
+          setHasPurchasedProduct(purchased)
+        }
+      } catch {
+        if (mounted) {
+          setHasPurchasedProduct(false)
+        }
+      } finally {
+        if (mounted) {
+          setCheckingPurchase(false)
+        }
+      }
+    }
+
+    void run()
+    return () => {
+      mounted = false
+    }
+  }, [id, isLeadLoggedIn])
 
   useEffect(() => {
     setActiveImageIndex(0)
@@ -65,7 +118,7 @@ export default function ProductDetailPage() {
   const activeProductImage = productImages[activeImageIndex] ?? productImages[0]
 
   const addToCart = async () => {
-    if (!product || !canUseCart) return
+    if (!product || !canMutateCart) return
     if (product.stok <= 0) {
       setReviewError('This product is currently out of stock.')
       return
@@ -76,18 +129,20 @@ export default function ProductDetailPage() {
       setAddedMessage('Product added to cart.')
       setReviewError(null)
     } catch (err) {
-      setReviewError(err instanceof Error ? err.message : 'Please sign in as lead to add cart items')
+      const details = getShopErrorDetails(err, 'Please sign in as lead to add cart items')
+      setReviewError(details.message)
     }
   }
 
   const updateQuantity = async (nextQty: number) => {
-    if (!product) return
+    if (!product || !canMutateCart) return
     try {
       await setQuantity(product._id, nextQty, product.stok)
       setReviewError(null)
       setAddedMessage(nextQty <= 0 ? 'Product removed from cart.' : null)
     } catch (err) {
-      setReviewError(err instanceof Error ? err.message : 'Failed to update quantity')
+      const details = getShopErrorDetails(err, 'Failed to update quantity')
+      setReviewError(details.message)
       setAddedMessage(null)
     }
   }
@@ -101,7 +156,14 @@ export default function ProductDetailPage() {
 
   const submitReview = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (!product || submittingReview) return
+    if (!product || submittingReview || !canSubmitReview) {
+      if (!isLeadLoggedIn) {
+        setReviewError('Sign in as lead to submit a review.')
+      } else if (!hasPurchasedProduct) {
+        setReviewError('Only customers who purchased this product can submit a review.')
+      }
+      return
+    }
 
     const normalizedTitle = title.trim()
     const normalizedComment = comment.trim()
@@ -126,7 +188,8 @@ export default function ProductDetailPage() {
       setReviewError(null)
       setAddedMessage('Review submitted successfully')
     } catch (err) {
-      setReviewError(err instanceof Error ? err.message : 'Only purchased customers can submit reviews')
+      const details = getShopErrorDetails(err, 'Unable to submit review right now.')
+      setReviewError(details.message)
     } finally {
       setSubmittingReview(false)
     }
@@ -343,7 +406,12 @@ export default function ProductDetailPage() {
 
             <form className="mt-5 grid gap-3 rounded-2xl border border-surface-200 bg-surface-50 p-4" onSubmit={submitReview}>
               <div className="grid gap-3 md:grid-cols-[180px_1fr]">
-                <select className="ui-input mt-0" value={rating} onChange={(event) => setRating(Number(event.target.value))}>
+                <select
+                  className="ui-input mt-0"
+                  value={rating}
+                  onChange={(event) => setRating(Number(event.target.value))}
+                  disabled={!canSubmitReview || checkingPurchase || submittingReview}
+                >
                   {[5, 4, 3, 2, 1].map((value) => (
                     <option key={value} value={value}>
                       {value} star
@@ -355,6 +423,7 @@ export default function ProductDetailPage() {
                   placeholder="Review title"
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
+                  disabled={!canSubmitReview || checkingPurchase || submittingReview}
                 />
               </div>
               <textarea
@@ -363,13 +432,24 @@ export default function ProductDetailPage() {
                 placeholder="Write a short, useful review"
                 value={comment}
                 onChange={(event) => setComment(event.target.value)}
+                disabled={!canSubmitReview || checkingPurchase || submittingReview}
                 required
               />
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-xs text-surface-500">
-                  Review only becomes public after purchase verification in the backend.
+                  {checkingPurchase
+                    ? 'Checking purchase eligibility...'
+                    : !isLeadLoggedIn
+                      ? 'Sign in as lead to submit your review.'
+                      : hasPurchasedProduct
+                        ? 'Review is accepted only for verified purchasers.'
+                        : 'Review is disabled until you purchase this product.'}
                 </p>
-                <button className="ui-btn-primary" type="submit" disabled={submittingReview}>
+                <button
+                  className="ui-btn-primary"
+                  type="submit"
+                  disabled={submittingReview || checkingPurchase || !canSubmitReview}
+                >
                   {submittingReview ? 'Submitting...' : 'Submit review'}
                 </button>
               </div>
@@ -413,12 +493,17 @@ export default function ProductDetailPage() {
             {canUseCart ? (
               <div className="mt-5 grid gap-3 rounded-2xl bg-slate-50 p-4">
                 <label className="text-sm font-medium text-slate-700">Quantity</label>
+                {isHydrating ? (
+                  <p className="rounded-lg bg-brand-50 px-3 py-2 text-xs text-brand-800 ring-1 ring-brand-100">
+                    Syncing your cart session. Actions will unlock in a moment.
+                  </p>
+                ) : null}
                 <div className="flex items-center gap-3">
                   <button
                     className="ui-btn-secondary h-10 w-10 px-0"
                     onClick={() => void updateQuantity(currentQty > 0 ? currentQty - 1 : 0)}
                     type="button"
-                    disabled={isCartPending || currentQty <= 0}
+                    disabled={!canMutateCart || isCartPending || currentQty <= 0}
                   >
                     -
                   </button>
@@ -429,13 +514,13 @@ export default function ProductDetailPage() {
                     value={currentQty}
                     className="h-10 min-w-16 rounded-lg border border-slate-300 bg-white px-3 text-center text-sm font-semibold text-slate-900"
                     onChange={(event) => void handleDirectInput(event.target.value)}
-                    disabled={isCartPending || product.stok <= 0}
+                    disabled={!canMutateCart || isCartPending || product.stok <= 0}
                   />
                   <button
                     className="ui-btn-secondary h-10 w-10 px-0"
                     onClick={() => void updateQuantity(currentQty > 0 ? currentQty + 1 : 1)}
                     type="button"
-                    disabled={isCartPending || product.stok <= 0 || currentQty >= Math.min(99, Math.max(1, product.stok))}
+                    disabled={!canMutateCart || isCartPending || product.stok <= 0 || currentQty >= Math.min(99, Math.max(1, product.stok))}
                   >
                     +
                   </button>
@@ -451,8 +536,12 @@ export default function ProductDetailPage() {
               {canUseCart ? (
                 <>
                   {currentQty > 0 ? null : (
-                    <button className="ui-btn-primary w-full" onClick={addToCart} disabled={product.stok <= 0 || isCartPending}>
-                      {product.stok <= 0 ? 'Out of stock' : isCartPending ? 'Adding...' : 'Add to cart'}
+                    <button
+                      className="ui-btn-primary w-full"
+                      onClick={addToCart}
+                      disabled={!canMutateCart || product.stok <= 0 || isCartPending}
+                    >
+                      {!canMutateCart ? 'Syncing cart...' : product.stok <= 0 ? 'Out of stock' : isCartPending ? 'Adding...' : 'Add to cart'}
                     </button>
                   )}
                   <Link to="/cart" className="ui-btn-secondary block text-center">

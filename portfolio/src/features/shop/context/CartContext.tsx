@@ -7,6 +7,7 @@ import type { Cart } from '@/shared/types/shop'
 interface CartContextValue {
   cart: Cart | null
   isHydrating: boolean
+  isHydrated: boolean
   error: string | null
   pendingByProductId: Record<string, boolean>
   getItemQty: (productId: string) => number
@@ -111,6 +112,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const setQuantity = useCallback(
     async (productId: string, quantity: number, maxStock?: number) => {
+      if (isHydrating) {
+        throw new Error('Cart is syncing. Please wait a moment and try again.')
+      }
+
       const normalizedQty = clampQuantity(quantity, maxStock)
       setPending(productId, true)
       try {
@@ -127,11 +132,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setPending(productId, false)
       }
     },
-    [setPending],
+    [isHydrating, setPending],
   )
 
   const addOrIncrement = useCallback(
     async (productId: string, maxStock?: number) => {
+      if (isHydrating) {
+        throw new Error('Cart is syncing. Please wait a moment and try again.')
+      }
+
       const currentQty = getItemQty(productId)
       const nextQty = clampQuantity(currentQty + 1, maxStock)
       if (nextQty <= 0) return
@@ -157,6 +166,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     () => ({
       cart,
       isHydrating,
+      isHydrated: !isHydrating,
       error,
       pendingByProductId,
       getItemQty,
