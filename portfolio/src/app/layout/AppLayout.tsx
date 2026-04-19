@@ -92,7 +92,7 @@ export default function AppLayout() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-white to-slate-100 px-4 py-6 sm:py-8">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.14),transparent_46%),radial-gradient(circle_at_bottom_right,rgba(245,158,11,0.12),transparent_38%),linear-gradient(180deg,#f8fafc,#f1f5f9)] px-4 py-6 sm:py-8">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
         <AppHeader
           isAuthenticated={isAuthenticated}
@@ -110,7 +110,7 @@ export default function AppLayout() {
           navItems={navItems}
         />
 
-        <main className={`${compactMode ? 'space-y-3' : 'space-y-5'} flex-1`}>
+        <main className={`${compactMode ? 'space-y-3' : 'space-y-5'} flex-1 rounded-[1.75rem] border border-slate-200 bg-white p-3 shadow-[0_14px_40px_rgba(30,58,138,0.1)] sm:p-4`}>
           <Outlet />
         </main>
 

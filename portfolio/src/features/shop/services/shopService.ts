@@ -2,6 +2,16 @@ import { httpClient } from '@/shared/api/httpClient'
 import type { Product } from '@/shared/types/content'
 import type { Cart, Order, Review, ShippingAddress } from '@/shared/types/shop'
 
+export const SHOP_CART_CHANGED_EVENT = 'shop:cart:changed'
+
+const emitCartChanged = (cart: Cart) => {
+  window.dispatchEvent(
+    new CustomEvent(SHOP_CART_CHANGED_EVENT, {
+      detail: { cart },
+    }),
+  )
+}
+
 interface ProductQuery {
   page?: number
   limit?: number
@@ -69,6 +79,7 @@ export const shopService = {
 
   async getMyCart(): Promise<Cart> {
     const response = await httpClient.get<{ data: { cart: Cart } }>('/cart/me')
+    emitCartChanged(response.data.data.cart)
     return response.data.data.cart
   },
 
@@ -77,6 +88,7 @@ export const shopService = {
       productId,
       quantity,
     })
+    emitCartChanged(response.data.data.cart)
     return response.data.data.cart
   },
 
@@ -84,11 +96,13 @@ export const shopService = {
     const response = await httpClient.put<{ data: { cart: Cart } }>(`/cart/items/${productId}`, {
       quantity,
     })
+    emitCartChanged(response.data.data.cart)
     return response.data.data.cart
   },
 
   async removeCartItem(productId: string): Promise<Cart> {
     const response = await httpClient.delete<{ data: { cart: Cart } }>(`/cart/items/${productId}`)
+    emitCartChanged(response.data.data.cart)
     return response.data.data.cart
   },
 

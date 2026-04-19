@@ -118,16 +118,30 @@ export default function EditViewAchievementPage() {
 
 	const onSave = async (event: FormEvent) => {
 		event.preventDefault()
-		if (!id) return
+		if (!id || saving) return
+
+		const payload = {
+			title: form.title.trim(),
+			description: form.description.trim(),
+			value: form.value.trim(),
+			image: form.imageFile || undefined,
+			isActive: form.isActive,
+		}
+
+		if (!payload.title || !payload.description) {
+			setError('Title and description are required.')
+			return
+		}
 
 		try {
+			setError(null)
 			setSaving(true)
 			await contentService.updateAchievement(id, {
-				title: form.title,
-				description: form.description,
-				value: form.value || undefined,
-				image: form.imageFile || undefined,
-				isActive: form.isActive,
+				title: payload.title,
+				description: payload.description,
+				value: payload.value || undefined,
+				image: payload.image,
+				isActive: payload.isActive,
 			})
 			navigate('/content/achievements/list')
 		} catch (err) {

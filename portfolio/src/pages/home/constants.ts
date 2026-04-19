@@ -1,8 +1,8 @@
 export const heroFallback = {
-  heading: 'Design-led portfolio experiences for modern brands',
+  heading: 'Built-for-reliability hardware experiences for modern spaces',
   description:
-    'A compact, editorial landing page built to showcase your strongest products, wins, and client proof with a premium visual rhythm.',
+    'A focused portfolio that highlights your strongest products, proven installs, and trusted client outcomes with a premium visual rhythm.',
 }
 
 export const sectionShell =
-  'rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-[0_20px_70px_rgba(15,23,42,0.08)] backdrop-blur'
+  'rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_16px_48px_rgba(15,23,42,0.08)]'

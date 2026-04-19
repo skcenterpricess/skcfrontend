@@ -16,7 +16,11 @@ export function RoleProtectedRoute({
   const normalizedAllowedRoles = roles.map((role) => role.trim().toLowerCase())
 
   if (isBootstrapping) {
-    return <div className="p-8 text-slate-500">Loading session...</div>
+    return (
+      <div className="p-8 text-slate-500" role="status" aria-live="polite" aria-busy="true">
+        Verifying session...
+      </div>
+    )
   }
 
   if (!isAuthenticated) {

@@ -31,6 +31,7 @@ export default function LeadsPage() {
   const [editTarget, setEditTarget] = useState<Lead | null>(null)
   const [viewTarget, setViewTarget] = useState<Lead | null>(null)
   const [form, setForm] = useState<LeadFormPayload>(emptyForm)
+  const [isSaving, setIsSaving] = useState(false)
 
   const modalTitle = useMemo(() => (editTarget ? 'Edit Lead' : 'Create Lead'), [editTarget])
 
@@ -87,17 +88,36 @@ export default function LeadsPage() {
 
   const onSave = async (event: FormEvent) => {
     event.preventDefault()
+    if (isSaving) return
+
+    const payload: LeadFormPayload = {
+      name: form.name.trim(),
+      email: form.email.trim().toLowerCase(),
+      phone: form.phone.trim(),
+      message: form.message.trim(),
+      status: form.status,
+      notes: form.notes?.trim() || '',
+    }
+
+    if (!payload.name || !payload.email || !payload.phone || !payload.message) {
+      setError('Name, email, phone, and message are required.')
+      return
+    }
+
     try {
+      setIsSaving(true)
       if (editTarget) {
-        await leadService.update(editTarget._id, form)
+        await leadService.update(editTarget._id, payload)
       } else {
-        await leadService.create(form)
+        await leadService.create(payload)
       }
       closeEditor()
       setRefreshTick((prev) => prev + 1)
       setError(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save lead')
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -329,11 +349,12 @@ export default function LeadsPage() {
                 type="button"
                 onClick={closeEditor}
                 className="rounded-lg border border-slate-300 px-4 py-2 text-sm"
+                disabled={isSaving}
               >
                 Cancel
               </button>
-              <button type="submit" className="rounded-lg bg-emerald-600 px-4 py-2 text-sm text-white">
-                Save
+              <button type="submit" className="rounded-lg bg-emerald-600 px-4 py-2 text-sm text-white disabled:opacity-60" disabled={isSaving}>
+                {isSaving ? 'Saving...' : 'Save'}
               </button>
             </div>
           </form>

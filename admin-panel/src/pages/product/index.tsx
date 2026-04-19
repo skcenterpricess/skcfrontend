@@ -18,6 +18,59 @@ const emptyForm: ProductFormPayload = {
   isActive: true,
 }
 
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024
+
+const normalizeProductPayload = (form: ProductFormPayload): ProductFormPayload => ({
+  ...form,
+  name: form.name.trim(),
+  description: form.description.trim(),
+  size: form.size.trim(),
+  version: (form.version || '').trim(),
+  base_price: Number.isFinite(form.base_price) ? Math.max(0, form.base_price) : 0,
+  marked_price: Number.isFinite(form.marked_price) ? Math.max(0, form.marked_price) : 0,
+  coopan_price: Number.isFinite(form.coopan_price) ? Math.max(0, form.coopan_price) : 0,
+  stok: Number.isFinite(form.stok) ? Math.max(0, Math.trunc(form.stok)) : 0,
+})
+
+const validateProductPayload = (
+  payload: ProductFormPayload,
+  newImageFiles: File[],
+  existingImageCount: number,
+  isEditMode: boolean,
+): string | null => {
+  if (!payload.name || !payload.description || !payload.size) {
+    return 'Name, description, and size are required.'
+  }
+
+  if (!isEditMode && newImageFiles.length === 0) {
+    return 'Please add at least one product image before saving'
+  }
+
+  if (isEditMode && existingImageCount + newImageFiles.length === 0) {
+    return 'Please keep at least one image or upload a new one before saving.'
+  }
+
+  const invalidFile = newImageFiles.find((file) => !file.type.startsWith('image/'))
+  if (invalidFile) {
+    return `Only image files are allowed (${invalidFile.name} is invalid).`
+  }
+
+  const oversizedFile = newImageFiles.find((file) => file.size > MAX_IMAGE_SIZE_BYTES)
+  if (oversizedFile) {
+    return `Image ${oversizedFile.name} is larger than 5MB.`
+  }
+
+  if (payload.coopan_price > payload.marked_price) {
+    return 'Offer price cannot be greater than marked price.'
+  }
+
+  if (payload.marked_price > 0 && payload.base_price > payload.marked_price) {
+    return 'Base price cannot be greater than marked price.'
+  }
+
+  return null
+}
+
 export default function ProductsPage({ mode = 'full', editId }: { mode?: PageMode; editId?: string }) {
   const navigate = useNavigate()
   const isCreateOnly = mode === 'create'
@@ -41,6 +94,7 @@ export default function ProductsPage({ mode = 'full', editId }: { mode?: PageMod
   const [existingImages, setExistingImages] = useState<ProductImage[]>([])
   const [newImageFiles, setNewImageFiles] = useState<File[]>([])
   const [newImagePreviewUrls, setNewImagePreviewUrls] = useState<string[]>([])
+  const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
     const objectUrls = newImageFiles.map((file) => URL.createObjectURL(file))
@@ -151,6 +205,20 @@ export default function ProductsPage({ mode = 'full', editId }: { mode?: PageMod
 
   const addNewImageFiles = (files: File[]) => {
     if (files.length === 0) return
+
+    const invalidFile = files.find((file) => !file.type.startsWith('image/'))
+    if (invalidFile) {
+      setError(`Only image files are allowed (${invalidFile.name} is invalid).`)
+      return
+    }
+
+    const oversizedFile = files.find((file) => file.size > MAX_IMAGE_SIZE_BYTES)
+    if (oversizedFile) {
+      setError(`Image ${oversizedFile.name} is larger than 5MB.`)
+      return
+    }
+
+    setError(null)
     setNewImageFiles((prev) => [...prev, ...files])
   }
 
@@ -164,21 +232,26 @@ export default function ProductsPage({ mode = 'full', editId }: { mode?: PageMod
 
   const onSave = async (event: FormEvent) => {
     event.preventDefault()
+    if (isSaving) return
+
+    const normalizedForm = normalizeProductPayload(form)
+    const validationError = validateProductPayload(normalizedForm, newImageFiles, existingImages.length, !!editTarget)
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+
     try {
+      setIsSaving(true)
       if (editTarget) {
         await productService.update(editTarget._id, {
-          ...form,
+          ...normalizedForm,
           imageFiles: newImageFiles,
           retainImagePublicIds: existingImages.map((image) => image.public_id),
         })
       } else {
-        if (newImageFiles.length === 0) {
-          setError('Please add at least one product image before saving')
-          return
-        }
-
         await productService.create({
-          ...form,
+          ...normalizedForm,
           imageFiles: newImageFiles,
         })
       }
@@ -190,6 +263,8 @@ export default function ProductsPage({ mode = 'full', editId }: { mode?: PageMod
       setError(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save product')
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -613,11 +688,12 @@ export default function ProductsPage({ mode = 'full', editId }: { mode?: PageMod
                 type="button"
                 className="rounded-lg border border-slate-300 px-4 py-2 text-sm"
                 onClick={closeEditor}
+                disabled={isSaving}
               >
                 Cancel
               </button>
-              <button type="submit" className="rounded-lg bg-brand-700 px-4 py-2 text-sm font-medium text-white">
-                Save
+              <button type="submit" className="rounded-lg bg-brand-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-60" disabled={isSaving}>
+                {isSaving ? 'Saving...' : 'Save'}
               </button>
             </div>
           </form>

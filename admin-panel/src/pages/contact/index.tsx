@@ -31,6 +31,7 @@ export default function ContactPage() {
   const [editTarget, setEditTarget] = useState<Lead | null>(null)
   const [viewTarget, setViewTarget] = useState<Lead | null>(null)
   const [form, setForm] = useState<LeadFormPayload>(emptyForm)
+  const [isSaving, setIsSaving] = useState(false)
 
   const modalTitle = useMemo(() => (editTarget ? 'Update Contact Status' : 'Create Contact'), [editTarget])
 
@@ -81,17 +82,36 @@ export default function ContactPage() {
 
   const onSave = async (event: FormEvent) => {
     event.preventDefault()
+    if (isSaving) return
+
+    const payload: LeadFormPayload = {
+      name: form.name.trim(),
+      email: form.email.trim().toLowerCase(),
+      phone: form.phone.trim(),
+      message: form.message.trim(),
+      status: form.status,
+      notes: form.notes?.trim() || '',
+    }
+
+    if (!payload.name || !payload.email || !payload.phone || !payload.message) {
+      setError('Name, email, phone, and message are required.')
+      return
+    }
+
     try {
+      setIsSaving(true)
       if (editTarget) {
-        await leadService.update(editTarget._id, form)
+        await leadService.update(editTarget._id, payload)
       } else {
-        await leadService.create(form)
+        await leadService.create(payload)
       }
       closeEditor()
       setRefreshTick((prev) => prev + 1)
       setError(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save contact')
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -322,14 +342,16 @@ export default function ContactPage() {
               <div className="flex gap-2 pt-2">
                 <button
                   type="submit"
-                  className="flex-1 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-600"
+                  disabled={isSaving}
+                  className="flex-1 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-600 disabled:opacity-60"
                 >
-                  Save
+                  {isSaving ? 'Saving...' : 'Save'}
                 </button>
                 <button
                   type="button"
                   onClick={closeEditor}
-                  className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  disabled={isSaving}
+                  className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
                 >
                   Cancel
                 </button>

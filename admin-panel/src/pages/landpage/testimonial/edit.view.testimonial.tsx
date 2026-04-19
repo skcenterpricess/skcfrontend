@@ -117,17 +117,25 @@ export default function EditTestimonialPage() {
 
 	const onSave = async (event: FormEvent) => {
 		event.preventDefault()
-		if (!id) return
+		if (!id || saving) return
+
+		const payload = {
+			name: form.name.trim(),
+			designation: form.designation.trim(),
+			message: form.message.trim(),
+			image: form.imageFile || undefined,
+			isActive: form.isActive,
+		}
+
+		if (!payload.name || !payload.designation || !payload.message) {
+			setError('Name, designation, and message are required.')
+			return
+		}
 
 		try {
+			setError(null)
 			setSaving(true)
-			await contentService.updateTestimonial(id, {
-				name: form.name,
-				designation: form.designation,
-				message: form.message,
-				image: form.imageFile || undefined,
-				isActive: form.isActive,
-			})
+			await contentService.updateTestimonial(id, payload)
 			navigate('/content/testimonials/list')
 		} catch (err) {
 			setError(normalizeError(err, 'Failed to update testimonial'))
