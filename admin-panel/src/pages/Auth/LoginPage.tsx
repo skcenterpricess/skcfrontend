@@ -72,7 +72,7 @@ export default function LoginPage() {
         {error ? <p className="text-sm text-rose-600">{error}</p> : null}
         <button
           disabled={isLoading}
-          className="w-full rounded-lg bg-admin-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="w-full rounded-lg bg-admin-700 bg-green-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
           type="submit"
         >
           {isLoading ? 'Signing in...' : 'Sign In'}
