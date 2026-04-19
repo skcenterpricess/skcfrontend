@@ -37,18 +37,33 @@ export default function CreateHeroPage() {
 
   const onSave = async (event: FormEvent) => {
     event.preventDefault()
+    if (saving) return
 
-    if (!form.imageFile) {
+    const payload = {
+      heading: form.heading.trim(),
+      description: form.description.trim(),
+      image: form.imageFile,
+    }
+
+    if (!payload.heading || !payload.description) {
+      setError('Heading and description are required.')
+      return
+    }
+
+    if (!payload.image) {
       setError('Please upload an image file before saving')
       return
     }
 
+    const imageFile = payload.image
+
     try {
+      setError(null)
       setSaving(true)
       await contentService.createHeaderSidebar({
-        heading: form.heading,
-        description: form.description,
-        image: form.imageFile,
+        heading: payload.heading,
+        description: payload.description,
+        image: imageFile,
       })
       navigate('/content/header-slider/list')
     } catch (err) {

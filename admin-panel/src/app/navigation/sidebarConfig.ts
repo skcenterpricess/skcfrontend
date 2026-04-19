@@ -15,30 +15,22 @@ export interface SidebarSection {
 
 export const sidebarSections: SidebarSection[] = [
   {
-    title: 'Overview',
-    roles: ['superadmin', 'admin'],
-    defaultOpen: true,
-    items: [{ to: '/dashboard', label: 'Dashboard' }],
-  },
-  {
     title: 'Workspace',
     roles: ['superadmin'],
     collapsible: true,
     defaultOpen: false,
     items: [
       { to: '/user-onboard', label: 'User Onboard' },
-      { to: '/pages/add', label: 'Add Page' },
     ],
   },
   {
-    title: 'Header Slider',
+    title: 'Hero Slider',
     roles: ['superadmin'],
     collapsible: true,
     defaultOpen: false,
     items: [
       { to: '/content/header-slider', label: 'Overview' },
-      { to: '/content/header-slider/create', label: 'Create Slide' },
-      { to: '/content/header-slider/list', label: 'All Slides' },
+      { to: '/content/header-slider/list', label: 'Slides' },
     ],
   },
   {
@@ -48,8 +40,7 @@ export const sidebarSections: SidebarSection[] = [
     defaultOpen: false,
     items: [
       { to: '/content/testimonials', label: 'Overview' },
-      { to: '/content/testimonials/create', label: 'Create Testimonial' },
-      { to: '/content/testimonials/list', label: 'All Testimonials' },
+      { to: '/content/testimonials/list', label: 'Testimonials' },
     ],
   },
   {
@@ -59,8 +50,7 @@ export const sidebarSections: SidebarSection[] = [
     defaultOpen: false,
     items: [
       { to: '/content/achievements', label: 'Overview' },
-      { to: '/content/achievements/create', label: 'Create Achievement' },
-      { to: '/content/achievements/list', label: 'All Achievements' },
+      { to: '/content/achievements/list', label: 'Achievements' },
     ],
   },
   {
@@ -69,9 +59,8 @@ export const sidebarSections: SidebarSection[] = [
     collapsible: true,
     defaultOpen: false,
     items: [
-      { to: '/products', label: 'Products' },
-      { to: '/products/create', label: 'Create Product' },
-      { to: '/products/list', label: 'All Products' },
+      { to: '/products', label: 'Overview' },
+      { to: '/products/list', label: 'Products' },
     ],
   },
   {
@@ -80,8 +69,8 @@ export const sidebarSections: SidebarSection[] = [
     collapsible: true,
     defaultOpen: false,
     items: [
-      { to: '/contact', label: 'Contact' },
-      { to: '/contact/list', label: 'All Contacts' },
+      { to: '/contact', label: 'Overview' },
+      { to: '/contact/list', label: 'Contacts' },
     ],
   },
   {
@@ -90,9 +79,8 @@ export const sidebarSections: SidebarSection[] = [
     collapsible: true,
     defaultOpen: false,
     items: [
-      { to: '/leads', label: 'Leads' },
-      { to: '/leads/create', label: 'Create Lead' },
-      { to: '/leads/list', label: 'All Leads' },
+      { to: '/leads', label: 'Overview' },
+      { to: '/leads/list', label: 'Leads' },
     ],
   },
   {

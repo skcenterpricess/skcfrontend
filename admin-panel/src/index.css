@@ -3,7 +3,8 @@
 @tailwind utilities;
 
 :root {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Manrope', 'Plus Jakarta Sans', 'Segoe UI', Tahoma, Geneva, Verdana,
+    sans-serif;
 }
 
 * {
@@ -13,6 +14,15 @@
 body {
   margin: 0;
   min-width: 320px;
-  color: #0f172a;
-  background: #f8fafc;
+  color: #431407;
+  background: #fff8ed;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

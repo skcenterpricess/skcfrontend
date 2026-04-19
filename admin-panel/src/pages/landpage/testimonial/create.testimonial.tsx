@@ -41,20 +41,37 @@ export default function CreateTestimonialPage() {
 
   const onSave = async (event: FormEvent) => {
     event.preventDefault()
+    if (saving) return
 
-    if (!form.imageFile) {
+    const payload = {
+      name: form.name.trim(),
+      designation: form.designation.trim(),
+      message: form.message.trim(),
+      image: form.imageFile,
+      isActive: form.isActive,
+    }
+
+    if (!payload.name || !payload.designation || !payload.message) {
+      setError('Name, designation, and message are required.')
+      return
+    }
+
+    if (!payload.image) {
       setError('Please upload an image file before saving')
       return
     }
 
+    const imageFile = payload.image
+
     try {
+      setError(null)
       setSaving(true)
       await contentService.createTestimonial({
-        name: form.name,
-        designation: form.designation,
-        message: form.message,
-        image: form.imageFile,
-        isActive: form.isActive,
+        name: payload.name,
+        designation: payload.designation,
+        message: payload.message,
+        image: imageFile,
+        isActive: payload.isActive,
       })
       navigate('/content/testimonials/list')
     } catch (err) {

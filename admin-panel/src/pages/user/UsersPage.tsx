@@ -17,6 +17,8 @@ export default function UsersPage() {
   const [limit, setLimit] = useState(10)
   const [refreshTick, setRefreshTick] = useState(0)
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, pages: 1 })
+  const [isCreating, setIsCreating] = useState(false)
+  const [togglingUserId, setTogglingUserId] = useState<string | null>(null)
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -53,24 +55,47 @@ export default function UsersPage() {
 
   const onCreateUser = async (event: FormEvent) => {
     event.preventDefault()
+    if (isCreating) return
+
+    const payload = {
+      name: form.name.trim(),
+      email: form.email.trim().toLowerCase(),
+      password: form.password.trim(),
+      role: form.role,
+      isActive: form.isActive,
+    }
+
+    if (!payload.name || !payload.email || !payload.password) {
+      setError('Name, email, and password are required.')
+      return
+    }
+
     try {
-      const created = await userManagementService.create(form)
+      setIsCreating(true)
+      const created = await userManagementService.create(payload)
       setUsers((prev) => [created, ...prev])
       setForm({ name: '', email: '', password: '', role: 'admin', isActive: true })
       setRefreshTick((prev) => prev + 1)
       setError(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create user')
+    } finally {
+      setIsCreating(false)
     }
   }
 
   const toggleUserStatus = async (record: ManagedUser) => {
+    if (togglingUserId) return
+
     try {
+      setTogglingUserId(record.id)
       const updated = await userManagementService.update(record.id, { isActive: !record.isActive })
       setUsers((prev) => prev.map((item) => (item.id === updated.id ? updated : item)))
       setRefreshTick((prev) => prev + 1)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update user')
+    } finally {
+      setTogglingUserId(null)
     }
   }
 
@@ -225,8 +250,8 @@ export default function UsersPage() {
             </label>
 
             <div className="md:col-span-2">
-              <button className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white" type="submit">
-                Onboard User
+              <button className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-60" type="submit" disabled={isCreating}>
+                {isCreating ? 'Onboarding...' : 'Onboard User'}
               </button>
             </div>
           </form>
@@ -256,8 +281,9 @@ export default function UsersPage() {
                   <button
                     onClick={() => toggleUserStatus(record)}
                     className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700"
+                    disabled={togglingUserId === record.id}
                   >
-                    Mark as {record.isActive ? 'Inactive' : 'Active'}
+                    {togglingUserId === record.id ? 'Updating...' : `Mark as ${record.isActive ? 'Inactive' : 'Active'}`}
                   </button>
                 ) : null}
               </article>

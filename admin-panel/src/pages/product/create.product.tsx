@@ -17,6 +17,50 @@ const emptyForm: ProductFormPayload = {
 	isActive: true,
 }
 
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024
+
+const normalizeProductPayload = (form: ProductFormPayload): ProductFormPayload => ({
+	...form,
+	name: form.name.trim(),
+	description: form.description.trim(),
+	size: form.size.trim(),
+	version: (form.version || '').trim(),
+	base_price: Number.isFinite(form.base_price) ? Math.max(0, form.base_price) : 0,
+	marked_price: Number.isFinite(form.marked_price) ? Math.max(0, form.marked_price) : 0,
+	coopan_price: Number.isFinite(form.coopan_price) ? Math.max(0, form.coopan_price) : 0,
+	stok: Number.isFinite(form.stok) ? Math.max(0, Math.trunc(form.stok)) : 0,
+})
+
+const validateProductPayload = (form: ProductFormPayload, files: File[]): string | null => {
+	if (!form.name || !form.description || !form.size) {
+		return 'Name, description, and size are required.'
+	}
+
+	if (files.length === 0) {
+		return 'Please add at least one product image before saving'
+	}
+
+	const invalidFile = files.find((file) => !file.type.startsWith('image/'))
+	if (invalidFile) {
+		return `Only image files are allowed (${invalidFile.name} is invalid).`
+	}
+
+	const oversizedFile = files.find((file) => file.size > MAX_IMAGE_SIZE_BYTES)
+	if (oversizedFile) {
+		return `Image ${oversizedFile.name} is larger than 5MB.`
+	}
+
+	if (form.coopan_price > form.marked_price) {
+		return 'Offer price cannot be greater than marked price.'
+	}
+
+	if (form.marked_price > 0 && form.base_price > form.marked_price) {
+		return 'Base price cannot be greater than marked price.'
+	}
+
+	return null
+}
+
 export default function CreateProductPage() {
 	const navigate = useNavigate()
 	const [form, setForm] = useState<ProductFormPayload>(emptyForm)
@@ -36,6 +80,20 @@ export default function CreateProductPage() {
 
 	const addNewImageFiles = (files: File[]) => {
 		if (files.length === 0) return
+
+		const invalidFile = files.find((file) => !file.type.startsWith('image/'))
+		if (invalidFile) {
+			setError(`Only image files are allowed (${invalidFile.name} is invalid).`)
+			return
+		}
+
+		const oversizedFile = files.find((file) => file.size > MAX_IMAGE_SIZE_BYTES)
+		if (oversizedFile) {
+			setError(`Image ${oversizedFile.name} is larger than 5MB.`)
+			return
+		}
+
+		setError(null)
 		setNewImageFiles((prev) => [...prev, ...files])
 	}
 
@@ -45,19 +103,24 @@ export default function CreateProductPage() {
 
 	const onSave = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault()
+		if (isSubmitting) return
+
 		setError(null)
 
-		if (newImageFiles.length === 0) {
-			setError('Please add at least one product image before saving')
+		const normalizedForm = normalizeProductPayload(form)
+		const validationError = validateProductPayload(normalizedForm, newImageFiles)
+		if (validationError) {
+			setError(validationError)
 			return
 		}
 
 		try {
 			setIsSubmitting(true)
 			await productService.create({
-				...form,
+				...normalizedForm,
 				imageFiles: newImageFiles,
 			})
+			setForm(normalizedForm)
 			navigate('/products/list')
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to save product')
@@ -240,7 +303,7 @@ export default function CreateProductPage() {
 						disabled={isSubmitting}
 						className="rounded-lg bg-admin-700 px-4 py-2 text-sm font-medium text-white hover:bg-admin-900 disabled:opacity-60"
 					>
-						{isSubmitting ? 'Saving...' : 'Save Product'}
+						{isSubmitting ? 'Saving product...' : 'Save Product'}
 					</button>
 				</div>
 			</form>

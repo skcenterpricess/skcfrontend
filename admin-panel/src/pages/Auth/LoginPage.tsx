@@ -14,11 +14,22 @@ export default function LoginPage() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (isLoading) return
+
+    const normalizedEmail = email.trim().toLowerCase()
+    const normalizedPassword = password.trim()
+    if (!normalizedEmail || !normalizedPassword) {
+      setError('Email and password are required.')
+      return
+    }
+
     setError('')
     setIsLoading(true)
 
     try {
-      await login({ email, password })
+      await login({ email: normalizedEmail, password: normalizedPassword })
+      setEmail(normalizedEmail)
+      setPassword('')
       navigate('/dashboard', { replace: true })
     } catch (err) {
       if (axios.isAxiosError<{ message?: string }>(err)) {
@@ -43,6 +54,7 @@ export default function LoginPage() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+            autoComplete="email"
             required
           />
         </label>
@@ -53,6 +65,7 @@ export default function LoginPage() {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+            autoComplete="current-password"
             required
           />
         </label>

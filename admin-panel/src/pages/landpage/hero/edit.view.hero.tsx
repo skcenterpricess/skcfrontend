@@ -109,15 +109,23 @@ export default function EditHeroPage() {
 
 	const onSave = async (event: FormEvent) => {
 		event.preventDefault()
-		if (!id) return
+		if (!id || saving) return
+
+		const payload = {
+			heading: form.heading.trim(),
+			description: form.description.trim(),
+			image: form.imageFile || undefined,
+		}
+
+		if (!payload.heading || !payload.description) {
+			setError('Heading and description are required.')
+			return
+		}
 
 		try {
+			setError(null)
 			setSaving(true)
-			await contentService.updateHeaderSidebar(id, {
-				heading: form.heading,
-				description: form.description,
-				image: form.imageFile || undefined,
-			})
+			await contentService.updateHeaderSidebar(id, payload)
 			navigate('/content/header-slider/list')
 		} catch (err) {
 			setError(normalizeError(err, 'Failed to update header slider'))
