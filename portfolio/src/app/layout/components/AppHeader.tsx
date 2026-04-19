@@ -26,7 +26,7 @@ function CartLink({ onClick }: { onClick?: () => void }) {
   return (
     <Link
       to="/cart"
-      className="mr-2 inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 bg-slate-50 text-slate-700 transition hover:bg-slate-100"
+      className="mr-2 inline-flex h-9 w-9 items-center justify-center rounded-full border border-brand-200 bg-brand-50 text-brand-700 transition hover:bg-brand-100"
       aria-label="Open cart"
       onClick={onClick}
     >
@@ -71,7 +71,7 @@ function AccountMenu({
       <button
         type="button"
         onClick={() => setIsAccountMenuOpen(!isAccountMenuOpen)}
-        className={`flex items-center justify-center rounded-full bg-slate-900 font-bold text-white ${
+        className={`flex items-center justify-center rounded-full bg-brand-700 font-bold text-white ${
           isMobile ? 'h-8 w-8 text-xs' : 'h-9 w-9 text-sm'
         }`}
         aria-label="Open account menu"
@@ -81,12 +81,12 @@ function AccountMenu({
       </button>
       {isAccountMenuOpen ? (
         <div
-          className={`absolute z-40 w-48 overflow-hidden rounded-xl border border-slate-200 bg-white p-2 shadow-xl ${
+          className={`absolute z-40 w-48 overflow-hidden rounded-xl border border-brand-200 bg-white p-2 shadow-xl ${
             isMobile ? 'left-0 top-10' : 'right-0 top-11'
           }`}
         >
           <Link
-            className="block rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+            className="block rounded-lg px-3 py-2 text-sm font-medium text-brand-700 hover:bg-brand-50"
             to={profileUpdatePath}
             onClick={() => {
               setIsAccountMenuOpen(false)
@@ -97,7 +97,7 @@ function AccountMenu({
           </Link>
           <button
             type="button"
-            className="mt-1 block w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-100"
+            className="mt-1 block w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-brand-700 hover:bg-brand-50"
             onClick={async () => {
               await onLogout()
               onAfterAction?.()
@@ -127,18 +127,21 @@ export function AppHeader({
   navItems,
 }: AppHeaderProps) {
   return (
-    <header className="sticky top-3 z-30 rounded-2xl border border-slate-200/70 bg-white/90 px-4 py-4 shadow-lg backdrop-blur sm:px-6">
+    <header className="sticky top-3 z-30 rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-[0_10px_28px_rgba(15,23,42,0.08)] sm:px-6">
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
+          <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-600 to-accent-500 text-sm font-black text-white shadow-sm">
+            SK
+          </span>
           <div className="min-w-0">
-            <h1 className="truncate text-lg font-black uppercase text-cyan-700 sm:text-xl">SKC Enterpricess</h1>
-            <p className="text-xs tracking-[0.24em] ">let's build something amazing</p>
+            <h1 className="truncate text-lg font-black uppercase text-brand-900 sm:text-xl">SKC Enterprises</h1>
+            <p className="text-xs uppercase tracking-[0.24em] text-slate-600">Let&apos;s build something strong</p>
           </div>
         </div>
 
         <button
           type="button"
-          className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 lg:hidden"
+          className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-800 lg:hidden"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
           {isMenuOpen ? 'Close' : 'Menu'}
@@ -146,7 +149,7 @@ export function AppHeader({
 
         <div className="hidden items-center gap-2 text-sm lg:flex">
           <button
-            className="rounded-md border border-slate-300 px-3 py-1.5 text-slate-700"
+            className="rounded-md border border-slate-300 px-3 py-1.5 text-slate-800 hover:bg-slate-50"
             onClick={() => setCompactMode(!compactMode)}
           >
             Compact: {compactMode ? 'On' : 'Off'}
@@ -164,10 +167,7 @@ export function AppHeader({
             </div>
           ) : (
             <>
-              <Link className="rounded-md border border-cyan-700 px-3 py-1.5 font-medium text-cyan-700" to="/login">
-                Superadmin Login
-              </Link>
-              <Link className="rounded-md bg-slate-900 px-3 py-1.5 font-medium text-white" to="/lead/login">
+              <Link className="rounded-md bg-brand-700 px-3 py-1.5 font-medium text-white hover:bg-brand-800" to="/lead/login">
                 Sign In
               </Link>
             </>
@@ -184,7 +184,7 @@ export function AppHeader({
               onClick={() => setIsMenuOpen(false)}
               className={({ isActive }) =>
                 `rounded-lg px-3 py-2 font-medium transition ${
-                  isActive ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  isActive ? 'bg-brand-700 text-white' : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
                 }`
               }
             >
@@ -195,7 +195,7 @@ export function AppHeader({
 
         <div className="mt-2 flex items-center gap-2 text-sm">
           <button
-            className="rounded-md border border-slate-300 px-3 py-1.5 text-slate-700"
+            className="rounded-md border border-slate-300 px-3 py-1.5 text-slate-800 hover:bg-slate-50"
             onClick={() => setCompactMode(!compactMode)}
           >
             Compact: {compactMode ? 'On' : 'Off'}
@@ -215,10 +215,7 @@ export function AppHeader({
             </div>
           ) : (
             <>
-              <Link className="rounded-md border border-cyan-700 px-3 py-1.5 font-medium text-cyan-700" to="/login">
-                Superadmin Login
-              </Link>
-              <Link className="rounded-md bg-slate-900 px-3 py-1.5 font-medium text-white" to="/lead/login">
+              <Link className="rounded-md bg-brand-700 px-3 py-1.5 font-medium text-white hover:bg-brand-800" to="/lead/login">
                 Sign In
               </Link>
             </>
@@ -236,7 +233,7 @@ export function AppHeader({
             to={to}
             className={({ isActive }) =>
               `rounded-xl px-3 py-2 text-center font-semibold transition ${
-                isActive ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                isActive ? 'bg-brand-700 text-white shadow' : 'bg-slate-100 text-slate-800 hover:bg-slate-200'
               }`
             }
           >

@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '@/features/auth/context/AuthContext'
 import { shopService } from '@/features/shop/services/shopService'
+import { useCart } from '@/features/shop/context/CartContext'
 import { mockProducts } from '@/features/content/mockData'
 import type { Product } from '@/shared/types/content'
 import type { Review } from '@/shared/types/shop'
 
 export default function ProjectsPage() {
   const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
+  const { getItemQty, addOrIncrement, setQuantity, pendingByProductId } = useCart()
   const [products, setProducts] = useState<Product[]>([])
   const [productsLoading, setProductsLoading] = useState(true)
   const [isUsingMockProducts, setIsUsingMockProducts] = useState(false)
@@ -21,6 +25,8 @@ export default function ProjectsPage() {
   const [reviewComment, setReviewComment] = useState('')
   const [reviewRating, setReviewRating] = useState(5)
   const [reviewList, setReviewList] = useState<Review[]>([])
+  const isLeadLoggedIn = typeof window !== 'undefined' && !!sessionStorage.getItem('portfolio.lead.session')
+  const canUseCart = isAuthenticated || isLeadLoggedIn
 
   const emptyDataFallbackEnabled = !import.meta.env.PROD && import.meta.env.VITE_ENABLE_EMPTY_DATA_MOCK !== 'false'
 
@@ -57,16 +63,34 @@ export default function ProjectsPage() {
     loadProducts()
   }, [search, sortBy, sortOrder])
 
-  const addToCart = async (productId: string) => {
+  const addToCart = async (productId: string, stock: number) => {
     try {
-      await shopService.addToCart(productId, 1)
-      setStatus('Product added to cart. Open the cart page to manage checkout.')
+      await addOrIncrement(productId, stock)
+      setStatus('Product added to cart.')
       setError(null)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login as lead to add cart items'
       setError(message)
       setStatus(null)
     }
+  }
+
+  const updateQuantity = async (productId: string, nextQty: number, stock: number) => {
+    try {
+      await setQuantity(productId, nextQty, stock)
+      setError(null)
+      setStatus(nextQty <= 0 ? 'Product removed from cart.' : null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update quantity')
+      setStatus(null)
+    }
+  }
+
+  const handleDirectInput = async (productId: string, stock: number, rawValue: string) => {
+    const trimmed = rawValue.trim()
+    const parsed = trimmed === '' ? 0 : Number.parseInt(trimmed, 10)
+    const safeQty = Number.isNaN(parsed) ? 0 : Math.max(0, parsed)
+    await updateQuantity(productId, safeQty, stock)
   }
 
   const openReview = async (product: Product) => {
@@ -114,7 +138,7 @@ export default function ProjectsPage() {
         </p>
 
         {isUsingMockProducts ? (
-          <p className="mt-3 inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 ring-1 ring-amber-200">
+          <p className="mt-3 inline-flex rounded-full bg-accent-50 px-3 py-1 text-xs font-medium text-accent-700 ring-1 ring-accent-200">
             Preview mode: showing mock products until the backend has live records.
           </p>
         ) : null}
@@ -142,21 +166,26 @@ export default function ProjectsPage() {
           </select>
         </div>
 
-        {status ? <p className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">{status}</p> : null}
-        {error ? <p className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{error}</p> : null}
+        {status ? <p className="mt-4 rounded-lg bg-success-50 p-3 text-sm text-success-700">{status}</p> : null}
+        {error ? <p className="mt-4 rounded-lg bg-danger-50 p-3 text-sm text-danger-700">{error}</p> : null}
 
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {!productsLoading && products.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-300 p-6 text-sm text-slate-600">
+            <div className="rounded-xl border border-dashed border-surface-300 bg-surface-50 p-6 text-sm text-surface-700">
               No products available yet.
             </div>
           ) : null}
           {products.map((product) => (
+            (() => {
+              const currentQty = getItemQty(product._id)
+              const isPending = !!pendingByProductId[product._id]
+
+              return (
             <article
               key={product._id}
               role="button"
               tabIndex={0}
-              className="cursor-pointer rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-cyan-300"
+              className="cursor-pointer rounded-xl border border-surface-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-brand-300"
               onClick={() => {
                 if (!isUsingMockProducts) {
                   navigate(`/products/${product._id}`)
@@ -171,7 +200,7 @@ export default function ProjectsPage() {
                 }
               }}
             >
-              <div className="mb-4 overflow-hidden rounded-[1rem] border border-slate-200 bg-slate-100">
+              <div className="mb-4 overflow-hidden rounded-[1rem] border border-surface-200 bg-surface-100">
                 {product.images?.[0]?.url ? (
                   <img
                     src={product.images[0].url}
@@ -179,30 +208,30 @@ export default function ProjectsPage() {
                     className="h-44 w-full object-cover transition duration-300 hover:scale-105"
                   />
                 ) : (
-                  <div className="flex h-44 items-center justify-center text-sm text-slate-500">No product image</div>
+                  <div className="flex h-44 items-center justify-center text-sm text-surface-600">No product image</div>
                 )}
               </div>
 
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-cyan-700">
+                  <p className="text-xs uppercase tracking-[0.2em] text-brand-700">
                     {product.size}
                     {product.version ? ` · ${product.version}` : ''}
                   </p>
-                  <h3 className="mt-2 text-lg font-bold text-slate-900">{product.name}</h3>
+                  <h3 className="mt-2 text-lg font-bold text-surface-900">{product.name}</h3>
                 </div>
-                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
+                <span className="rounded-full bg-surface-100 px-2.5 py-1 text-xs font-medium text-surface-700">
                   Stock {product.stok}
                 </span>
               </div>
 
-              <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">{product.description}</p>
+              <p className="mt-3 line-clamp-3 text-sm leading-6 text-surface-700">{product.description}</p>
 
               <div className="mt-4 flex items-center justify-between text-sm">
-                <p className="font-semibold text-slate-900">Rs. {product.coopan_price}</p>
-                <p className="text-slate-400 line-through">Rs. {product.marked_price}</p>
+                <p className="font-semibold text-surface-900">Rs. {product.coopan_price}</p>
+                <p className="text-surface-400 line-through">Rs. {product.marked_price}</p>
               </div>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-surface-500">
                 Rating {(product.avgRating || 0).toFixed(1)} ({product.ratingCount || 0} reviews)
               </p>
 
@@ -221,16 +250,72 @@ export default function ProjectsPage() {
                 >
                   View details
                 </Link>
-                <button
-                  className="ui-btn-primary flex-1"
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    addToCart(product._id)
-                  }}
-                  disabled={isUsingMockProducts || product.stok <= 0}
-                >
-                  {isUsingMockProducts ? 'Preview only' : product.stok <= 0 ? 'Out of stock' : 'Add to cart'}
-                </button>
+                {currentQty > 0 ? (
+                  canUseCart ? (
+                  <div
+                    className="flex flex-1 items-center gap-2 rounded-lg border border-surface-200 bg-surface-50 px-2 py-1"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <button
+                      type="button"
+                      className="h-8 w-8 rounded-md border border-surface-300 bg-white text-lg font-semibold text-surface-700"
+                      onClick={() => void updateQuantity(product._id, currentQty - 1, product.stok)}
+                      disabled={isUsingMockProducts || isPending}
+                    >
+                      -
+                    </button>
+                    <input
+                      type="number"
+                      min={0}
+                      max={Math.min(99, Math.max(1, product.stok))}
+                      value={currentQty}
+                      className="h-8 w-14 rounded-md border border-surface-300 bg-white px-2 text-center text-sm font-semibold text-surface-900"
+                      onChange={(event) => {
+                        event.stopPropagation()
+                        void handleDirectInput(product._id, product.stok, event.target.value)
+                      }}
+                      disabled={isUsingMockProducts || isPending}
+                    />
+                    <button
+                      type="button"
+                      className="h-8 w-8 rounded-md border border-surface-300 bg-white text-lg font-semibold text-surface-700"
+                      onClick={() => void updateQuantity(product._id, currentQty + 1, product.stok)}
+                      disabled={isUsingMockProducts || isPending || currentQty >= Math.min(99, Math.max(1, product.stok))}
+                    >
+                      +
+                    </button>
+                  </div>
+                  ) : (
+                    <Link
+                      to="/lead/login"
+                      className="ui-btn-primary flex-1 text-center"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      Sign in to add
+                    </Link>
+                  )
+                ) : (
+                  canUseCart ? (
+                    <button
+                      className="ui-btn-primary flex-1"
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        void addToCart(product._id, product.stok)
+                      }}
+                      disabled={isUsingMockProducts || product.stok <= 0 || isPending}
+                    >
+                      {isUsingMockProducts ? 'Preview only' : product.stok <= 0 ? 'Out of stock' : 'Add to cart'}
+                    </button>
+                  ) : (
+                    <Link
+                      to="/lead/login"
+                      className="ui-btn-primary flex-1 text-center"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      Sign in to add
+                    </Link>
+                  )
+                )}
                 <button
                   className="ui-btn-secondary"
                   onClick={(event) => {
@@ -243,16 +328,18 @@ export default function ProjectsPage() {
                 </button>
               </div>
             </article>
+              )
+            })()
           ))}
         </div>
       </div>
 
       {reviewTarget ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/55 p-4">
           <div className="w-full max-w-2xl rounded-xl bg-white p-6 shadow-2xl">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-slate-900">Reviews for {reviewTarget.name}</h3>
-              <button className="text-sm text-slate-500" onClick={() => setReviewTarget(null)}>
+              <h3 className="text-lg font-semibold text-surface-900">Reviews for {reviewTarget.name}</h3>
+              <button className="text-sm text-surface-500" onClick={() => setReviewTarget(null)}>
                 Close
               </button>
             </div>
@@ -292,15 +379,15 @@ export default function ProjectsPage() {
 
             <div className="mt-5 space-y-3">
               {reviewList.length === 0 ? (
-                <p className="text-sm text-slate-600">No reviews yet.</p>
+                <p className="text-sm text-surface-600">No reviews yet.</p>
               ) : (
                 reviewList.map((review) => (
-                  <article key={review._id} className="rounded-lg border border-slate-200 p-3">
-                    <p className="text-sm font-semibold text-slate-900">
+                  <article key={review._id} className="rounded-lg border border-surface-200 p-3">
+                    <p className="text-sm font-semibold text-surface-900">
                       {review.rating} / 5 {review.title ? `· ${review.title}` : ''}
                     </p>
-                    <p className="mt-1 text-sm text-slate-600">{review.comment}</p>
-                    <p className="mt-1 text-xs text-slate-500">By {review.leadId?.name || 'Customer'}</p>
+                    <p className="mt-1 text-sm text-surface-600">{review.comment}</p>
+                    <p className="mt-1 text-xs text-surface-500">By {review.leadId?.name || 'Customer'}</p>
                   </article>
                 ))
               )}

@@ -58,9 +58,10 @@ export default function LeadProfilePage() {
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (isSaving) return
+
     setError('')
     setSuccess('')
-    setIsSaving(true)
 
     const payload: {
       name?: string
@@ -69,10 +70,22 @@ export default function LeadProfilePage() {
       password?: string
     } = {}
 
-    if (form.name.trim()) payload.name = form.name.trim()
-    if (form.email.trim()) payload.email = form.email.trim()
-    if (form.phone.trim()) payload.phone = form.phone.trim()
-    if (form.password.trim()) payload.password = form.password.trim()
+    const normalizedName = form.name.trim()
+    const normalizedEmail = form.email.trim().toLowerCase()
+    const normalizedPhone = form.phone.trim()
+    const normalizedPassword = form.password.trim()
+
+    if (!normalizedName || !normalizedEmail || !normalizedPhone) {
+      setError('Name, email, and phone are required.')
+      return
+    }
+
+    payload.name = normalizedName
+    payload.email = normalizedEmail
+    payload.phone = normalizedPhone
+    if (normalizedPassword) payload.password = normalizedPassword
+
+    setIsSaving(true)
 
     try {
       const updated = await leadAuthService.updateProfile(payload)
@@ -130,7 +143,7 @@ export default function LeadProfilePage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="ui-title">Lead Profile</h2>
-          <p className="mt-1 text-sm text-slate-600">Logged in as {profile?.email}</p>
+          <p className="mt-1 text-sm text-surface-700">Logged in as {profile?.email}</p>
         </div>
         <button
           type="button"

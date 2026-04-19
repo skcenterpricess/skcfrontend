@@ -47,15 +47,15 @@ export default function AboutPage() {
   return (
     <section className="space-y-8 pb-4">
       {/* Hero Section */}
-      <div className="rounded-[2.25rem] bg-gradient-to-br from-cyan-50 to-slate-100 px-6 py-10 sm:px-8 lg:px-10">
+      <div className="rounded-[2.25rem] bg-gradient-to-br from-brand-50 to-surface-100 px-6 py-10 sm:px-8 lg:px-10">
         <div className="max-w-2xl space-y-4">
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-700">
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-brand-700">
             About Our Work
           </p>
-          <h1 className="text-4xl font-black text-slate-950 sm:text-5xl">
+          <h1 className="text-4xl font-black text-surface-900 sm:text-5xl">
             Achievements that showcase our commitment to excellence
           </h1>
-          <p className="max-w-xl text-lg leading-8 text-slate-600">
+          <p className="max-w-xl text-lg leading-8 text-surface-700">
             We measure success through milestones, results, and the trust our clients place in us. 
             Every achievement below represents dedication, creativity, and a focus on delivering 
             measurable impact.
@@ -66,10 +66,10 @@ export default function AboutPage() {
       {/* Achievements Gallery */}
       <section className="space-y-6">
         <div className="space-y-3">
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-700">
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-brand-700">
             Our Milestones
           </p>
-          <h2 className="text-3xl font-black text-slate-950">Achievements & Impact</h2>
+          <h2 className="text-3xl font-black text-surface-900">Achievements & Impact</h2>
         </div>
 
         <div>
@@ -78,19 +78,19 @@ export default function AboutPage() {
               {Array.from({ length: 6 }).map((_, index) => (
                 <div
                   key={index}
-                  className="rounded-[1.4rem] border border-slate-200 bg-white p-5 shadow-sm"
+                  className="rounded-[1.4rem] border border-surface-200 bg-white p-5 shadow-sm"
                 >
-                  <div className="h-11 w-11 animate-pulse rounded-2xl bg-slate-200" />
-                  <div className="mt-4 h-6 w-3/4 animate-pulse rounded-lg bg-slate-200" />
+                  <div className="h-11 w-11 animate-pulse rounded-2xl bg-surface-200" />
+                  <div className="mt-4 h-6 w-3/4 animate-pulse rounded-lg bg-surface-200" />
                   <div className="mt-3 space-y-2">
-                    <div className="h-4 w-full animate-pulse rounded-lg bg-slate-100" />
-                    <div className="h-4 w-5/6 animate-pulse rounded-lg bg-slate-100" />
+                    <div className="h-4 w-full animate-pulse rounded-lg bg-surface-100" />
+                    <div className="h-4 w-5/6 animate-pulse rounded-lg bg-surface-100" />
                   </div>
                 </div>
               ))}
             </div>
           ) : error || displayAchievements.length === 0 ? (
-            <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center">
+            <div className="rounded-[1.5rem] border border-dashed border-surface-300 bg-surface-50 px-6 py-12 text-center">
               <div className="mx-auto max-w-sm">
                 <svg
                   className="mx-auto h-12 w-12 opacity-40"
@@ -105,10 +105,10 @@ export default function AboutPage() {
                     d="M13 10V3L4 14h7v7l9-11h-7z"
                   />
                 </svg>
-                <p className="mt-4 text-slate-600">
+                <p className="mt-4 text-surface-700">
                   {error ? error : 'No achievements available yet.'}
                 </p>
-                <p className="mt-2 text-sm text-slate-500">
+                <p className="mt-2 text-sm text-surface-500">
                   Check back soon for our latest milestones and wins.
                 </p>
               </div>
@@ -118,33 +118,33 @@ export default function AboutPage() {
               {displayAchievements.map((achievement, index) => (
                 <article
                   key={achievement._id}
-                  className="group rounded-[1.4rem] border border-slate-200 bg-white p-5 shadow-sm transition-transform duration-300 hover:shadow-md hover:-translate-y-0.5"
+                  className="group rounded-[1.4rem] border border-surface-200 bg-white p-5 shadow-sm transition-transform duration-300 hover:shadow-md hover:-translate-y-0.5"
                 >
                   <div className="flex items-start justify-between gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 to-cyan-700 text-lg font-black text-white shadow-lg">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-lg font-black text-white shadow-lg">
                       {String(index + 1).padStart(2, '0')}
                     </div>
                     {achievement.value && (
-                      <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold text-white">
+                      <span className="rounded-full bg-surface-900 px-3 py-1 text-xs font-semibold text-white">
                         {achievement.value}
                       </span>
                     )}
                   </div>
 
-                  <h3 className="mt-4 text-xl font-bold text-slate-950 group-hover:text-cyan-700 transition">
+                  <h3 className="mt-4 text-xl font-bold text-surface-900 group-hover:text-brand-700 transition">
                     {achievement.title}
                   </h3>
 
-                  <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">
+                  <p className="mt-3 line-clamp-3 text-sm leading-6 text-surface-700">
                     {achievement.description}
                   </p>
 
-                  <div className="mt-4 flex items-center gap-2 text-xs text-slate-400">
-                    <span className="rounded-full bg-slate-50 px-2.5 py-1 font-medium">
+                  <div className="mt-4 flex items-center gap-2 text-xs text-surface-400">
+                    <span className="rounded-full bg-surface-50 px-2.5 py-1 font-medium">
                       Milestone
                     </span>
                     {achievement.value && (
-                      <span className="rounded-full bg-cyan-50 px-2.5 py-1 font-medium text-cyan-700">
+                      <span className="rounded-full bg-brand-50 px-2.5 py-1 font-medium text-brand-700">
                         +{achievement.value}
                       </span>
                     )}
@@ -165,12 +165,12 @@ export default function AboutPage() {
         ].map((stat, index) => (
           <div
             key={index}
-            className="rounded-[1.4rem] border border-slate-200 bg-white/70 px-6 py-6 text-center backdrop-blur"
+            className="rounded-[1.4rem] border border-surface-200 bg-white px-6 py-6 text-center"
           >
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-surface-500">
               {stat.label}
             </p>
-            <p className="mt-3 text-3xl font-black text-slate-950 sm:text-4xl">
+            <p className="mt-3 text-3xl font-black text-surface-900 sm:text-4xl">
               {stat.value}
             </p>
           </div>
