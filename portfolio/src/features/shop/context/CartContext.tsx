@@ -18,6 +18,8 @@ interface CartContextValue {
 const CartContext = createContext<CartContextValue | undefined>(undefined)
 
 const MAX_QTY = 99
+const LEAD_SESSION_KEY = 'portfolio.lead.session'
+
 const clampQuantity = (quantity: number, maxStock?: number) => {
   const ceiling = Math.min(MAX_QTY, Math.max(1, maxStock ?? MAX_QTY))
   return Math.min(ceiling, Math.max(0, quantity))
@@ -44,9 +46,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setCart(next)
       setError(null)
     } catch (err) {
-      if (!axios.isAxiosError(err) || err.response?.status !== 401) {
-        setError(err instanceof Error ? err.message : 'Failed to load cart')
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
+        setCart(null)
+        setError(null)
+        return
       }
+
+      setError(err instanceof Error ? err.message : 'Failed to load cart')
       setCart(null)
     } finally {
       setIsHydrating(false)
@@ -54,6 +60,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
+    const hasLeadSession = !!sessionStorage.getItem(LEAD_SESSION_KEY)
+    if (!hasLeadSession) {
+      setCart(null)
+      setError(null)
+      setIsHydrating(false)
+      return
+    }
+
     void refreshCart()
   }, [refreshCart])
 
@@ -72,15 +86,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const onSessionChanged = () => {
+      const hasLeadSession = !!sessionStorage.getItem(LEAD_SESSION_KEY)
+      if (!hasLeadSession) {
+        setCart(null)
+        setError(null)
+        setIsHydrating(false)
+        return
+      }
+
       setIsHydrating(true)
       void refreshCart()
     }
 
     window.addEventListener('lead:session:changed', onSessionChanged)
-    window.addEventListener('auth:unauthorized', onSessionChanged)
     return () => {
       window.removeEventListener('lead:session:changed', onSessionChanged)
-      window.removeEventListener('auth:unauthorized', onSessionChanged)
     }
   }, [refreshCart])
 

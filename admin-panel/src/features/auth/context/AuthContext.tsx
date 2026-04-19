@@ -49,8 +49,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const me = await authService.me()
       setUser(normalizeAuthUser(me))
-    } catch {
-      setUser(null)
+    } catch (error: unknown) {
+      const status =
+        typeof error === 'object' && error !== null && 'response' in error
+          ? ((error as { response?: { status?: number } }).response?.status ?? undefined)
+          : undefined
+
+      if (status === 401 || status === 403) {
+        setUser(null)
+      }
     } finally {
       setIsBootstrapping(false)
     }
@@ -61,7 +68,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [bootstrap])
 
   useEffect(() => {
-    const onUnauthorized = () => setUser(null)
+    const onUnauthorized = (event: Event) => {
+      const customEvent = event as CustomEvent<{ status?: number; url?: string }>
+      const status = customEvent.detail?.status
+
+      if (status === 401 || status === 403 || status === undefined) {
+        setUser(null)
+      }
+    }
     window.addEventListener('auth:unauthorized', onUnauthorized)
     return () => window.removeEventListener('auth:unauthorized', onUnauthorized)
   }, [])

@@ -13,9 +13,19 @@ httpClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const status = error?.response?.status as number | undefined
+    const requestUrl = String(error?.config?.url || '')
+    const isLoginRequest = requestUrl.includes('/auth/login')
+    const isSessionRequest = requestUrl.includes('/auth/me') || requestUrl.includes('/auth/refresh')
 
-    if (status === 401) {
-      window.dispatchEvent(new CustomEvent('auth:unauthorized'))
+    if ((status === 401 || status === 403) && (!isLoginRequest || isSessionRequest)) {
+      window.dispatchEvent(
+        new CustomEvent('auth:unauthorized', {
+          detail: {
+            status,
+            url: requestUrl,
+          },
+        }),
+      )
     }
 
     return Promise.reject(error)
