@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import axios from 'axios'
 import { useAuth } from '@/features/auth/context/AuthContext'
 
 export default function LoginPage() {
@@ -19,45 +20,49 @@ export default function LoginPage() {
     try {
       await login({ email, password })
       navigate('/dashboard', { replace: true })
-    } catch {
-      setError('Invalid credentials or session issue.')
+    } catch (err) {
+      if (axios.isAxiosError<{ message?: string }>(err)) {
+        setError(err.response?.data?.message || 'Invalid credentials or session issue.')
+      } else {
+        setError('Invalid credentials or session issue.')
+      }
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <section className="mx-auto w-full max-w-md rounded-2xl bg-white p-8 shadow-sm ring-1 ring-slate-200">
-      <h2 className="text-2xl font-semibold text-slate-900">Sign In</h2>
-      <p className="mt-2 text-sm text-slate-600">JWT stays in secure cookies, never in storage.</p>
-      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-        <label className="block text-sm font-medium text-slate-700">
+    <section className="ui-page-card-narrow max-w-md">
+      <h2 className="ui-title">Superadmin Sign In</h2>
+      <p className="ui-subtitle">Superadmin portal access. JWT stays in secure cookies, never in storage.</p>
+      <form onSubmit={handleSubmit} className="ui-form-grid">
+        <label className="ui-label block">
           Email
           <input
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+            className="ui-input"
             required
           />
         </label>
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="ui-label block">
           Password
           <input
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
+            className="ui-input"
             required
           />
         </label>
-        {error ? <p className="text-sm text-rose-600">{error}</p> : null}
+        {error ? <p className="ui-status-error">{error}</p> : null}
         <button
           disabled={isLoading}
-          className="w-full rounded-lg bg-brand-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="ui-btn-primary w-full"
           type="submit"
         >
-          {isLoading ? 'Signing in...' : 'Sign In'}
+          {isLoading ? 'Signing in...' : 'Superadmin Sign In'}
         </button>
       </form>
     </section>

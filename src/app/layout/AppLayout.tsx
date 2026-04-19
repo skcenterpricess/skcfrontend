@@ -1,0 +1,121 @@
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Outlet } from 'react-router-dom'
+import { useAuth } from '@/features/auth/context/AuthContext'
+import { useSessionPreferences } from '@/app/providers/SessionPreferencesProvider'
+import { leadAuthService } from '@/features/leads/services/leadAuthService'
+import { AppHeader } from '@/app/layout/components/AppHeader'
+import { AppFooter } from '@/app/layout/components/AppFooter'
+
+const LEAD_SESSION_KEY = 'portfolio.lead.session'
+const LEAD_SESSION_EVENT = 'lead:session:changed'
+
+interface LeadSessionUser {
+  id: string
+  name: string
+  email: string
+  phone: string
+  role: 'lead'
+}
+
+export default function AppLayout() {
+  const { isAuthenticated, logout, user } = useAuth()
+  const { compactMode, setCompactMode } = useSessionPreferences()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
+  const [leadSessionUser, setLeadSessionUser] = useState<LeadSessionUser | null>(null)
+  const accountMenuRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const loadLeadSession = () => {
+      try {
+        const raw = sessionStorage.getItem(LEAD_SESSION_KEY)
+        if (!raw) {
+          setLeadSessionUser(null)
+          return
+        }
+        setLeadSessionUser(JSON.parse(raw) as LeadSessionUser)
+      } catch {
+        setLeadSessionUser(null)
+      }
+    }
+
+    loadLeadSession()
+    window.addEventListener(LEAD_SESSION_EVENT, loadLeadSession)
+    return () => window.removeEventListener(LEAD_SESSION_EVENT, loadLeadSession)
+  }, [])
+
+  useEffect(() => {
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!accountMenuRef.current) return
+      if (!accountMenuRef.current.contains(event.target as Node)) {
+        setIsAccountMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+    return () => document.removeEventListener('mousedown', handlePointerDown)
+  }, [])
+
+  const isLeadLoggedIn = !!leadSessionUser
+
+  const displayName = useMemo(() => {
+    if (isAuthenticated && user?.name) {
+      return user.name
+    }
+    if (isLeadLoggedIn && leadSessionUser?.name) {
+      return leadSessionUser.name
+    }
+    return ''
+  }, [isAuthenticated, isLeadLoggedIn, leadSessionUser?.name, user?.name])
+
+  const firstLetter = displayName.trim().charAt(0).toUpperCase() || 'U'
+  const profileUpdatePath = isLeadLoggedIn ? '/lead/profile' : '/dashboard'
+
+  const onLogout = async () => {
+    if (isAuthenticated) {
+      await logout()
+      return
+    }
+    if (isLeadLoggedIn) {
+      await leadAuthService.logout()
+    }
+    setIsAccountMenuOpen(false)
+  }
+
+  const navItems = [
+    { to: '/', label: 'Home' },
+    { to: '/projects', label: 'Products' },
+    { to: '/about', label: 'About' },
+    { to: '/achievements', label: 'Achievements' },
+    { to: '/contact', label: 'Contact' },
+    ...(isAuthenticated ? [{ to: '/dashboard', label: 'Dashboard' }] : []),
+  ]
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-white to-slate-100 px-4 py-6 sm:py-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+        <AppHeader
+          isAuthenticated={isAuthenticated}
+          isLeadLoggedIn={isLeadLoggedIn}
+          compactMode={compactMode}
+          setCompactMode={setCompactMode}
+          isMenuOpen={isMenuOpen}
+          setIsMenuOpen={setIsMenuOpen}
+          isAccountMenuOpen={isAccountMenuOpen}
+          setIsAccountMenuOpen={setIsAccountMenuOpen}
+          accountMenuRef={accountMenuRef}
+          firstLetter={firstLetter}
+          profileUpdatePath={profileUpdatePath}
+          onLogout={onLogout}
+          navItems={navItems}
+        />
+
+        <main className={`${compactMode ? 'space-y-3' : 'space-y-5'} flex-1`}>
+          <Outlet />
+        </main>
+
+        <AppFooter />
+      </div>
+    </div>
+  )
+}
