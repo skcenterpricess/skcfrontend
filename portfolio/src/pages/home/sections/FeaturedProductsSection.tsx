@@ -119,14 +119,14 @@ export function FeaturedProductsSection({
                   <Link to={`/products/${product._id}`} className="ui-btn-secondary text-center">
                     View details
                   </Link>
-                  <button
+                  {/* <button
                     type="button"
                     className="ui-btn-primary"
                     onClick={() => onAddToCart(product._id)}
                     disabled={product.stok <= 0}
                   >
                     {product.stok <= 0 ? 'Out of stock' : 'Add to cart'}
-                  </button>
+                  </button> */}
                 </div>
               </article>
             ))}
