@@ -1,5 +1,6 @@
 import { httpClient } from '@/shared/api/httpClient'
 import axios from 'axios'
+import type { LeadAuthUser } from '@/features/leads/services/leadAuthService'
 import type { Product } from '@/shared/types/content'
 import type { Address, Cart, Order, Review, ShippingAddress } from '@/shared/types/shop'
 
@@ -47,6 +48,19 @@ interface ListAddressesResult {
 interface ListReviewsResult {
   records: Review[]
   pagination: Pagination
+}
+
+interface LeadDashboardResult {
+  user: LeadAuthUser
+  cart: Cart
+  orders: Order[]
+  reviews: Review[]
+  addresses: Address[]
+  pagination: {
+    orders: Pagination
+    reviews: Pagination
+    addresses: Pagination
+  }
 }
 
 interface ProductResponse {
@@ -234,6 +248,12 @@ export const shopService = {
       records: response.data.data.orders,
       pagination: response.data.pagination,
     }
+  },
+
+  async getMyDashboard(): Promise<LeadDashboardResult> {
+    const response = await httpClient.get<{ data: LeadDashboardResult }>('/leads/me/dashboard')
+    emitCartChanged(response.data.data.cart)
+    return response.data.data
   },
 
   async listMyReviews(page = 1, limit = 10): Promise<ListReviewsResult> {
