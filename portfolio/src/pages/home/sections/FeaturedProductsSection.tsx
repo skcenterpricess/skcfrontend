@@ -7,7 +7,7 @@ interface FeaturedProductsSectionProps {
   products: Product[]
   cartStatus: string | null
   cartError: string | null
-  onAddToCart: (productId: string) => void
+  // onAddToCart: (productId: string) => void
 }
 
 export function FeaturedProductsSection({
@@ -15,7 +15,7 @@ export function FeaturedProductsSection({
   products,
   cartStatus,
   cartError,
-  onAddToCart,
+  // onAddToCart,
 }: FeaturedProductsSectionProps) {
   const navigate = useNavigate()
 
