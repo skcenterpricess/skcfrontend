@@ -16,7 +16,7 @@ export default function HomePage() {
     topTestimonials,
     topAchievements,
   })
-  const { cartStatus, cartError, addToCart } = useCartFeedback()
+  const { cartStatus, cartError} = useCartFeedback()
 
   return (
     <section className="space-y-8 pb-4">
@@ -32,7 +32,7 @@ export default function HomePage() {
         products={featuredProducts}
         cartStatus={cartStatus}
         cartError={cartError}
-        onAddToCart={addToCart}
+        // onAddToCart={addToCart}
       />
       <AchievementsSection isLoading={isLoading} achievements={featuredAchievements} />
       <TestimonialsSection isLoading={isLoading} testimonials={featuredTestimonials} />
