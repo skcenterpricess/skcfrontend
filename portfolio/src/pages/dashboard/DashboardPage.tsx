@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/features/auth/context/AuthContext'
-import { getStoredLeadSession, leadAuthService, type LeadAuthUser } from '@/features/leads/services/leadAuthService'
+import { getStoredLeadSession, setStoredLeadSession, type LeadAuthUser } from '@/features/leads/services/leadAuthService'
 import { getShopErrorDetails, shopService } from '@/features/shop/services/shopService'
 import type { Address, Cart, Order, Review, ShippingAddress } from '@/shared/types/shop'
 
@@ -97,29 +97,24 @@ export default function DashboardPage() {
     setError('')
 
     try {
-      const [profile, myCart, myOrders, myAddresses, myReviews] = await Promise.all([
-        leadAuthService.me(),
-        shopService.getMyCart(),
-        shopService.listMyOrders(1, 10),
-        shopService.listMyAddresses(1, 50),
-        shopService.listMyReviews(1, 20),
-      ])
+      const dashboard = await shopService.getMyDashboard()
 
-      setLead(profile)
-      setCart(myCart)
-      setOrders(myOrders.records)
-      setAddresses(myAddresses.records)
-      setReviews(myReviews.records)
+      setStoredLeadSession(dashboard.user)
+      setLead(dashboard.user)
+      setCart(dashboard.cart)
+      setOrders(dashboard.orders)
+      setAddresses(dashboard.addresses)
+      setReviews(dashboard.reviews)
       setReviewDrafts(
-        myReviews.records.reduce<Record<string, ReviewDraft>>((drafts, review) => {
+        dashboard.reviews.reduce<Record<string, ReviewDraft>>((drafts, review) => {
           drafts[review._id] = { rating: review.rating, title: review.title || '', comment: review.comment }
           return drafts
         }, {}),
       )
       setAddressForm((prev) => ({
         ...prev,
-        fullName: prev.fullName || profile.name,
-        phone: prev.phone || profile.phone,
+        fullName: prev.fullName || dashboard.user.name,
+        phone: prev.phone || dashboard.user.phone,
       }))
     } catch (err) {
       setError(getShopErrorDetails(err, 'Unable to load dashboard details.').message)
