@@ -125,7 +125,7 @@ export function FeaturedProductsSection({
                     onClick={() => onAddToCart(product._id)}
                     disabled={product.stok <= 0}
                   >
-                    {product.stok <= 0 ? 'Out of stock' : 'Add to cart'}
+                    {/* {product.stok <= 0 ? 'Out of stock' : 'Add to cart'} */}
                   </button>
                 </div>
               </article>
