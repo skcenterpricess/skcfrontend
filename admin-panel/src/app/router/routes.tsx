@@ -30,6 +30,8 @@ import EditContactPage from '@/pages/contact/edit.view.contact'
 import CreateLeadPage from '@/pages/lead/createlead'
 import LeadListPage from '@/pages/lead/leadlist'
 import EditLeadPage from '@/pages/lead/edit.view.lead'
+import OrderListPage from '@/pages/orders/list.orders'
+import OrderDetailPage from '@/pages/orders/OrderDetailPage'
 import SettingsPage from '@/pages/user/SettingsPage'
 import UsersPage from '@/pages/user/UsersPage'
 
@@ -286,6 +288,30 @@ export const router = createBrowserRouter([
         element: (
           <RoleProtectedRoute roles={['superadmin', 'admin']}>
             <EditProductPage />
+          </RoleProtectedRoute>
+        ),
+      },
+      {
+        path: 'orders',
+        element: (
+          <RoleProtectedRoute roles={['superadmin', 'admin']}>
+            <Navigate to="/orders/list" replace />
+          </RoleProtectedRoute>
+        ),
+      },
+      {
+        path: 'orders/list',
+        element: (
+          <RoleProtectedRoute roles={['superadmin', 'admin']}>
+            <OrderListPage />
+          </RoleProtectedRoute>
+        ),
+      },
+      {
+        path: 'orders/view/:id',
+        element: (
+          <RoleProtectedRoute roles={['superadmin', 'admin']}>
+            <OrderDetailPage />
           </RoleProtectedRoute>
         ),
       },

@@ -257,7 +257,7 @@ export default function ProductDetailPage() {
               <div className="absolute left-6 top-6 rounded-full bg-brand-900 px-3 py-1 text-xs font-semibold text-white">
                 {stockLabel}
               </div>
-              <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr] lg:items-center">
+              <div className="space-y-6">
                 <div className="space-y-4">
                   <div className="overflow-hidden rounded-[1.5rem] border border-surface-200 bg-white shadow-sm">
                     {activeProductImage ? (

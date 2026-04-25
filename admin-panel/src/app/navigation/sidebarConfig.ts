@@ -84,6 +84,16 @@ export const sidebarSections: SidebarSection[] = [
     ],
   },
   {
+    title: 'Orders',
+    roles: ['superadmin', 'admin'],
+    collapsible: true,
+    defaultOpen: false,
+    items: [
+      { to: '/orders', label: 'Overview' },
+      { to: '/orders/list', label: 'Orders' },
+    ],
+  },
+  {
     title: 'Operations',
     roles: ['superadmin', 'admin'],
     collapsible: true,

@@ -4,11 +4,12 @@ import axios from 'axios'
 import { Link } from 'react-router-dom'
 import { leadAuthService, type LeadAuthUser } from '@/features/leads/services/leadAuthService'
 import { shopService } from '@/features/shop/services/shopService'
-import type { Cart, Order, ShippingAddress } from '@/shared/types/shop'
+import type { Address, Cart, Order, ShippingAddress } from '@/shared/types/shop'
 
 const emptyShipping: ShippingAddress = {
   fullName: '',
   phone: '',
+  area: '',
   line1: '',
   line2: '',
   city: '',
@@ -20,6 +21,7 @@ const emptyShipping: ShippingAddress = {
 const normalizeShippingAddress = (value: ShippingAddress): ShippingAddress => ({
   fullName: value.fullName.trim(),
   phone: value.phone.trim(),
+  area: value.area?.trim() || '',
   line1: value.line1.trim(),
   line2: value.line2?.trim() || '',
   city: value.city.trim(),
@@ -28,7 +30,12 @@ const normalizeShippingAddress = (value: ShippingAddress): ShippingAddress => ({
   country: value.country?.trim() || 'India',
 })
 
-const validateCheckoutInput = (cart: Cart | null, shipping: ShippingAddress): string | null => {
+const validateCheckoutInput = (
+  cart: Cart | null,
+  shipping: ShippingAddress,
+  selectedAddressId: string,
+  useNewAddress: boolean,
+): string | null => {
   if (!cart || cart.items.length === 0) {
     return 'Your cart is empty. Add items before placing an order.'
   }
@@ -36,6 +43,14 @@ const validateCheckoutInput = (cart: Cart | null, shipping: ShippingAddress): st
   const hasInvalidItem = cart.items.some((item) => item.quantity < 1 || item.quantity > Math.max(0, item.productId.stok ?? 0))
   if (hasInvalidItem) {
     return 'Cart quantities are out of sync with stock. Please update your cart and try again.'
+  }
+
+  if (!useNewAddress) {
+    if (!selectedAddressId) {
+      return 'Please select an address before placing the order.'
+    }
+
+    return null
   }
 
   if (!shipping.fullName || !shipping.phone || !shipping.line1 || !shipping.city || !shipping.state || !shipping.pincode) {
@@ -57,6 +72,9 @@ export default function CartPage() {
   const [profile, setProfile] = useState<LeadAuthUser | null>(null)
   const [cart, setCart] = useState<Cart | null>(null)
   const [orders, setOrders] = useState<Order[]>([])
+  const [addresses, setAddresses] = useState<Address[]>([])
+  const [selectedAddressId, setSelectedAddressId] = useState('')
+  const [useNewAddress, setUseNewAddress] = useState(true)
   const [shipping, setShipping] = useState<ShippingAddress>(emptyShipping)
   const [customerNote, setCustomerNote] = useState('')
   const [isLoading, setIsLoading] = useState(true)
@@ -77,6 +95,7 @@ export default function CartPage() {
       setShipping({
         fullName: lead.name,
         phone: lead.phone,
+        area: '',
         line1: '',
         line2: '',
         city: '',
@@ -84,9 +103,21 @@ export default function CartPage() {
         pincode: '',
         country: 'India',
       })
-      const [myCart, myOrders] = await Promise.all([shopService.getMyCart(), shopService.listMyOrders(1, 5)])
+      const [myCart, myOrders, myAddresses] = await Promise.all([
+        shopService.getMyCart(),
+        shopService.listMyOrders(1, 5),
+        shopService.listMyAddresses(1, 20),
+      ])
       setCart(myCart)
       setOrders(myOrders.records)
+      setAddresses(myAddresses.records)
+      if (myAddresses.records.length > 0) {
+        setSelectedAddressId(myAddresses.records[0]._id)
+        setUseNewAddress(false)
+      } else {
+        setSelectedAddressId('')
+        setUseNewAddress(true)
+      }
       setIsUnauthorized(false)
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 401) {
@@ -105,8 +136,9 @@ export default function CartPage() {
 
   const orderButtonDisabled = useMemo(() => {
     if (!cart || cart.items.length === 0) return true
+    if (!useNewAddress) return !selectedAddressId
     return !shipping.fullName || !shipping.phone || !shipping.line1 || !shipping.city || !shipping.state || !shipping.pincode
-  }, [cart, shipping])
+  }, [cart, shipping, selectedAddressId, useNewAddress])
 
   const updateCartQty = async (productId: string, quantity: number) => {
     if (isCartMutating || isSubmitting) return
@@ -135,7 +167,7 @@ export default function CartPage() {
     if (isSubmitting || isCartMutating) return
 
     const normalizedShipping = normalizeShippingAddress(shipping)
-    const validationError = validateCheckoutInput(cart, normalizedShipping)
+    const validationError = validateCheckoutInput(cart, normalizedShipping, selectedAddressId, useNewAddress)
     if (validationError) {
       setError(validationError)
       return
@@ -146,7 +178,19 @@ export default function CartPage() {
     setSuccess('')
 
     try {
-      await shopService.placeOrder(normalizedShipping, customerNote.trim())
+      let addressId = selectedAddressId
+      if (useNewAddress || !addressId) {
+        const createdAddress = await shopService.createAddress(normalizedShipping)
+        addressId = createdAddress._id
+        setAddresses((prev) => {
+          const deduped = prev.filter((item) => item._id !== createdAddress._id)
+          return [createdAddress, ...deduped]
+        })
+        setSelectedAddressId(createdAddress._id)
+        setUseNewAddress(false)
+      }
+
+      await shopService.placeOrder(addressId, customerNote.trim())
       const [nextCart, nextOrders] = await Promise.all([shopService.getMyCart(), shopService.listMyOrders(1, 5)])
       setCart(nextCart)
       setOrders(nextOrders.records)
@@ -301,65 +345,116 @@ export default function CartPage() {
             </div>
 
             <div className="mt-5 grid gap-3">
-              <input
-                className="ui-input"
-                placeholder="Full name"
-                value={shipping.fullName}
-                onChange={(event) => setShipping((prev) => ({ ...prev, fullName: event.target.value }))}
-                required
-              />
-              <input
-                className="ui-input"
-                placeholder="Phone"
-                value={shipping.phone}
-                onChange={(event) => setShipping((prev) => ({ ...prev, phone: event.target.value }))}
-                required
-              />
-              <input
-                className="ui-input"
-                placeholder="Address line 1"
-                value={shipping.line1}
-                onChange={(event) => setShipping((prev) => ({ ...prev, line1: event.target.value }))}
-                required
-              />
-              <input
-                className="ui-input"
-                placeholder="Address line 2 (optional)"
-                value={shipping.line2 || ''}
-                onChange={(event) => setShipping((prev) => ({ ...prev, line2: event.target.value }))}
-              />
-              <div className="grid gap-3 sm:grid-cols-2">
-                <input
-                  className="ui-input"
-                  placeholder="City"
-                  value={shipping.city}
-                  onChange={(event) => setShipping((prev) => ({ ...prev, city: event.target.value }))}
-                  required
-                />
-                <input
-                  className="ui-input"
-                  placeholder="State"
-                  value={shipping.state}
-                  onChange={(event) => setShipping((prev) => ({ ...prev, state: event.target.value }))}
-                  required
-                />
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <input
-                  className="ui-input"
-                  placeholder="Pincode"
-                  value={shipping.pincode}
-                  onChange={(event) => setShipping((prev) => ({ ...prev, pincode: event.target.value }))}
-                  required
-                />
-                <input
-                  className="ui-input"
-                  placeholder="Country"
-                  value={shipping.country || 'India'}
-                  onChange={(event) => setShipping((prev) => ({ ...prev, country: event.target.value }))}
-                  required
-                />
-              </div>
+              {addresses.length > 0 ? (
+                <div className="rounded-2xl border border-surface-200 bg-surface-50 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-surface-500">Saved address</p>
+                  <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_auto_auto]">
+                    <select
+                      className="ui-input"
+                      value={selectedAddressId}
+                      onChange={(event) => setSelectedAddressId(event.target.value)}
+                      disabled={isSubmitting || isCartMutating}
+                    >
+                      {addresses.map((address) => (
+                        <option key={address._id} value={address._id}>
+                          {address.fullName} · {address.city} · {address.pincode}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      className="ui-btn-secondary"
+                      onClick={() => setUseNewAddress(false)}
+                      disabled={isSubmitting || isCartMutating}
+                    >
+                      Use selected
+                    </button>
+                    <button
+                      type="button"
+                      className="ui-btn-secondary"
+                      onClick={() => setUseNewAddress(true)}
+                      disabled={isSubmitting || isCartMutating}
+                    >
+                      Add new
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
+              {useNewAddress ? (
+                <>
+                  <input
+                    className="ui-input"
+                    placeholder="Full name"
+                    value={shipping.fullName}
+                    onChange={(event) => setShipping((prev) => ({ ...prev, fullName: event.target.value }))}
+                    required
+                  />
+                  <input
+                    className="ui-input"
+                    placeholder="Phone"
+                    value={shipping.phone}
+                    onChange={(event) => setShipping((prev) => ({ ...prev, phone: event.target.value }))}
+                    required
+                  />
+                  <input
+                    className="ui-input"
+                    placeholder="Area (optional)"
+                    value={shipping.area || ''}
+                    onChange={(event) => setShipping((prev) => ({ ...prev, area: event.target.value }))}
+                  />
+                  <input
+                    className="ui-input"
+                    placeholder="Address line 1"
+                    value={shipping.line1}
+                    onChange={(event) => setShipping((prev) => ({ ...prev, line1: event.target.value }))}
+                    required
+                  />
+                  <input
+                    className="ui-input"
+                    placeholder="Address line 2 (optional)"
+                    value={shipping.line2 || ''}
+                    onChange={(event) => setShipping((prev) => ({ ...prev, line2: event.target.value }))}
+                  />
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <input
+                      className="ui-input"
+                      placeholder="City"
+                      value={shipping.city}
+                      onChange={(event) => setShipping((prev) => ({ ...prev, city: event.target.value }))}
+                      required
+                    />
+                    <input
+                      className="ui-input"
+                      placeholder="State"
+                      value={shipping.state}
+                      onChange={(event) => setShipping((prev) => ({ ...prev, state: event.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <input
+                      className="ui-input"
+                      placeholder="Pincode"
+                      value={shipping.pincode}
+                      onChange={(event) => setShipping((prev) => ({ ...prev, pincode: event.target.value }))}
+                      required
+                    />
+                    <input
+                      className="ui-input"
+                      placeholder="Country"
+                      value={shipping.country || 'India'}
+                      onChange={(event) => setShipping((prev) => ({ ...prev, country: event.target.value }))}
+                      required
+                    />
+                  </div>
+                </>
+              ) : (
+                <p className="rounded-xl border border-success-200 bg-success-50 px-3 py-2 text-sm text-success-700">
+                  Selected saved address will be used for this order.
+                </p>
+              )}
+
               <textarea
                 className="ui-textarea"
                 rows={3}
