@@ -1,5 +1,4 @@
 import { Link, NavLink } from 'react-router-dom'
-import type { MutableRefObject } from 'react'
 
 interface NavItem {
   to: string
@@ -15,7 +14,6 @@ interface AppHeaderProps {
   setIsMenuOpen: (value: boolean) => void
   isAccountMenuOpen: boolean
   setIsAccountMenuOpen: (value: boolean) => void
-  accountMenuRef: MutableRefObject<HTMLDivElement | null>
   firstLetter: string
   profileUpdatePath: string
   onLogout: () => void | Promise<void>
@@ -134,7 +132,6 @@ export function AppHeader({
   setIsMenuOpen,
   isAccountMenuOpen,
   setIsAccountMenuOpen,
-  accountMenuRef,
   firstLetter,
   profileUpdatePath,
   onLogout,
@@ -169,7 +166,7 @@ export function AppHeader({
             Compact: {compactMode ? 'On' : 'Off'}
           </button>
           {isAuthenticated || isLeadLoggedIn ? (
-            <div className="relative flex items-center" ref={accountMenuRef}>
+            <div className="relative flex items-center" data-account-menu-root="true">
               <CartLink />
               <AccountMenu
                 isAccountMenuOpen={isAccountMenuOpen}
@@ -216,7 +213,7 @@ export function AppHeader({
             Compact: {compactMode ? 'On' : 'Off'}
           </button>
           {isAuthenticated || isLeadLoggedIn ? (
-            <div className="relative flex items-center" ref={accountMenuRef}>
+            <div className="relative flex items-center" data-account-menu-root="true">
               <CartLink onClick={() => setIsMenuOpen(false)} />
               <AccountMenu
                 isAccountMenuOpen={isAccountMenuOpen}

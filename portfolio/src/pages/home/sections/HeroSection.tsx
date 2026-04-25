@@ -33,7 +33,7 @@ export function HeroSection({
 
             {/* LEFT NUMBER */}
             <div
-              className="bg-[#0f2a44] text-white px-4 py-2 font-bold"
+              className="bg-accent-900 text-white px-4 py-2 font-bold"
               style={{ clipPath: 'polygon(12% 0, 100% 0, 88% 100%, 0% 100%)' }}
             >
               {safeActiveSlideIndex + 1}
@@ -41,7 +41,7 @@ export function HeroSection({
 
             {/* MAIN TITLE */}
             <div
-              className="flex-1 bg-[#f58220] text-white px-6 py-3 font-bold text-lg tracking-wide"
+              className="flex-1 bg-brand-500 text-white px-6 py-3 font-bold text-lg tracking-wide"
               style={{ clipPath: 'polygon(5% 0, 100% 0, 95% 100%, 0% 100%)' }}
             >
               {currentSlide?.heading ?? heroFallback.heading}
@@ -49,7 +49,7 @@ export function HeroSection({
 
             {/* RIGHT RANGE */}
             {/* <div
-              className="bg-[#0f2a44] text-white px-4 py-2 font-semibold"
+              className="bg-accent-900 text-white px-4 py-2 font-semibold"
               style={{ clipPath: 'polygon(12% 0, 100% 0, 88% 100%, 0% 100%)' }}
             >
               {/* {currentSlide?.range ?? '1-2'} 
@@ -84,7 +84,7 @@ export function HeroSection({
                     key={index}
                     onClick={() => onSlideSelect(index)}
                     className={`h-2 w-8 rounded-sm transition ${
-                      isActive ? 'bg-[#f58220]' : 'bg-gray-300'
+                      isActive ? 'bg-brand-500' : 'bg-gray-300'
                     }`}
                   />
                 )

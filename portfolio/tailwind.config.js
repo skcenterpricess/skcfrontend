@@ -5,6 +5,19 @@ export default {
     extend: {
       colors: {
         brand: {
+          50: "#FFF7ED",
+          100: "#FFEDD5",
+          200: "#FED7AA",
+          300: "#FDBA74",
+          400: "#FB923C",
+          500: "#F58220",
+          600: "#EA580C",
+          700: "#C2410C",
+          800: "#9A3412",
+          900: "#7C2D12",
+        },
+
+        accent: {
           50: "#EFF6FF",
           100: "#DBEAFE",
           200: "#BFDBFE",
@@ -13,21 +26,8 @@ export default {
           500: "#3B82F6",
           600: "#2563EB",
           700: "#1D4ED8",
-          800: "#1E3A8A", // deep navy usable
-          900: "#0F2A44", // 🔥 updated (matches your UI)
-        },
-
-        accent: {
-          50: "#FFF7ED",
-          100: "#FFEDD5",
-          200: "#FED7AA",
-          300: "#FDBA74",
-          400: "#FB923C",
-          500: "#F58220", // 🔥 MAIN ORANGE (your design color)
-          600: "#EA580C",
-          700: "#C2410C",
-          800: "#9A3412",
-          900: "#7C2D12",
+          800: "#1E3A8A",
+          900: "#0F2A44",
         },
 
         surface: {

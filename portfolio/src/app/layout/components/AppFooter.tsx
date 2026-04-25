@@ -1,6 +1,6 @@
 export function AppFooter() {
   return (
-    <footer className="rounded-2xl border border-slate-200 bg-white px-6 py-6 text-sm text-slate-700 shadow-[0_10px_32px_rgba(30,58,138,0.08)]">
+    <footer className="rounded-2xl border border-slate-200 bg-white px-6 py-6 text-sm text-slate-700 shadow-[0_10px_32px_rgba(194,65,12,0.1)]">
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brand-700">SKC Portfolio</p>
