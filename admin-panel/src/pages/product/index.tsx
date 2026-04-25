@@ -285,7 +285,7 @@ export default function ProductsPage({ mode = 'full', editId }: { mode?: PageMod
     <>
       {!isCreateOnly && !isEditOnly && (
         <section className="rounded-2xl bg-white p-8 shadow-sm ring-1 ring-slate-200">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className="text-2xl font-semibold text-slate-900">Products</h2>
               <p className="mt-1 text-sm text-slate-600">
@@ -293,7 +293,7 @@ export default function ProductsPage({ mode = 'full', editId }: { mode?: PageMod
               </p>
             </div>
             <button
-              className="rounded-lg bg-admin-700 px-4 py-2 text-sm font-medium text-white hover:bg-admin-900"
+              className="inline-flex items-center justify-center rounded-lg bg-admin-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-admin-900"
               onClick={() => {
                 if (mode === 'list' || mode === 'full') {
                   navigate('/products/create')
@@ -302,7 +302,7 @@ export default function ProductsPage({ mode = 'full', editId }: { mode?: PageMod
                 openCreate()
               }}
             >
-              Create Product
+              + Create Product
             </button>
           </div>
 

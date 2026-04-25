@@ -236,6 +236,26 @@ export const shopService = {
     }
   },
 
+  async listMyReviews(page = 1, limit = 10): Promise<ListReviewsResult> {
+    const response = await httpClient.get<{ data: { reviews: Review[] }; pagination: Pagination }>(
+      `/leads/me/reviews?page=${page}&limit=${limit}&sortOrder=desc`,
+    )
+
+    return {
+      records: response.data.data.reviews,
+      pagination: response.data.pagination,
+    }
+  },
+
+  async updateReview(reviewId: string, payload: { rating?: number; title?: string; comment?: string }): Promise<Review> {
+    const response = await httpClient.put<{ data: { review: Review } }>(`/reviews/${reviewId}`, payload)
+    return response.data.data.review
+  },
+
+  async deleteReview(reviewId: string): Promise<void> {
+    await httpClient.delete(`/reviews/${reviewId}`)
+  },
+
   async hasPurchasedProduct(productId: string): Promise<boolean> {
     const pageLimit = 50
     const maxPagesToScan = 5
