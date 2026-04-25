@@ -39,6 +39,10 @@ const getAddressText = (address: Address) =>
   [address.line1, address.area, address.city, address.state, address.pincode].filter(Boolean).join(', ')
 
 const getReviewProduct = (review: Review) => {
+  if (!review.productId) {
+    return null
+  }
+
   if (typeof review.productId === 'string') {
     return { id: review.productId, name: 'Product' }
   }
@@ -73,7 +77,11 @@ export default function DashboardPage() {
   const firstName = activeUser?.name?.split(' ')[0] ?? 'User'
 
   const purchasedProducts = useMemo(() => {
-    const reviewedIds = new Set(reviews.map((review) => getReviewProduct(review).id))
+    const reviewedIds = new Set(
+      reviews
+        .map((review) => getReviewProduct(review)?.id)
+        .filter((productId): productId is string => Boolean(productId)),
+    )
     const products = new Map<string, string>()
 
     orders.forEach((order) => {
@@ -330,12 +338,21 @@ export default function DashboardPage() {
             <Link to="/cart" className="ui-btn-secondary">Open Cart</Link>
           </div>
           <div className="mt-5 space-y-3">
-            {cart?.items.length ? cart.items.slice(0, 4).map((item) => (
-              <article key={item.productId._id} className="rounded-2xl border border-surface-200 p-4">
-                <Link to={`/products/${item.productId._id}`} className="font-bold text-surface-900 transition hover:text-brand-700">{item.productId.name}</Link>
-                <p className="mt-1 text-sm text-surface-600">Qty {item.quantity} / Rs. {item.lineTotal}</p>
-              </article>
-            )) : (
+            {cart?.items.length ? cart.items.slice(0, 4).map((item, index) => {
+              const productId = item.productId?._id
+              const productName = item.productId?.name || 'Product unavailable'
+
+              return (
+                <article key={productId || `cart-item-${index}`} className="rounded-2xl border border-surface-200 p-4">
+                  {productId ? (
+                    <Link to={`/products/${productId}`} className="font-bold text-surface-900 transition hover:text-brand-700">{productName}</Link>
+                  ) : (
+                    <p className="font-bold text-surface-500">{productName}</p>
+                  )}
+                  <p className="mt-1 text-sm text-surface-600">Qty {item.quantity} / Line total Rs. {item.lineTotal}</p>
+                </article>
+              )
+            }) : (
               <div className="rounded-2xl border border-dashed border-surface-300 bg-surface-50 p-5 text-sm text-surface-700">Your cart is empty.</div>
             )}
           </div>
@@ -390,7 +407,11 @@ export default function DashboardPage() {
             return (
               <article key={review._id} className="rounded-2xl border border-surface-200 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <Link to={`/products/${product.id}`} className="font-bold text-surface-900 transition hover:text-brand-700">{product.name}</Link>
+                  {product ? (
+                    <Link to={`/products/${product.id}`} className="font-bold text-surface-900 transition hover:text-brand-700">{product.name}</Link>
+                  ) : (
+                    <p className="font-bold text-surface-500">Product unavailable</p>
+                  )}
                   <span className="rounded-full bg-success-50 px-3 py-1 text-xs font-semibold text-success-700">{review.isVisible ? 'Visible' : 'Hidden'}</span>
                 </div>
                 <div className="mt-4 grid gap-3 lg:grid-cols-[8rem_1fr]">
