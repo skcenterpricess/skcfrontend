@@ -43,7 +43,10 @@ const validateCheckoutInput = (
   }
 
   const hasInvalidItem = cart.items.some(
-    (item) => !item.productId?._id || item.quantity < 1 || item.quantity > Math.max(0, item.productId?.stok ?? 0),
+    (item) => {
+      const stock = item.productId?.stok
+      return !item.productId?._id || item.quantity < 1 || (typeof stock === 'number' && item.quantity > Math.max(0, stock))
+    },
   )
   if (hasInvalidItem) {
     return 'Cart quantities are out of sync with stock. Please update your cart and try again.'
