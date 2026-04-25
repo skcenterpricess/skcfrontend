@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom"
+
 const policySections = [
   {
     title: 'Disclaimer',
@@ -82,6 +84,58 @@ const policySections = [
 
 export default function AboutPage() {
   return (
+    <>
+      {/* Portfolio Overview */}
+      <section className="rounded-[1.5rem] border border-surface-200 bg-gradient-to-br from-white to-surface-50 p-6 shadow-sm sm:p-8">
+        <div className="space-y-4">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-brand-700">
+              Welcome to SKC Enterprises
+            </p>
+             <p className="mt-2 text-base leading-8 text-surface-700 sm:text-lg">
+              We are a leading provider of high-quality products, dedicated to delivering excellence and innovation. Our commitment to customer satisfaction and our passion for creating exceptional products have made us a trusted name in the industry.
+            </p>
+            <h2 className="mt-2 text-2xl font-black text-surface-900">What's inside</h2>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { count: '50+', label: 'Products', description: 'Available in catalog' },
+              { count: '100+', label: 'Achievements', description: 'Milestones reached' },
+              { count: '99%', label: 'Satisfaction', description: 'Client feedback' },
+              { count: '24/7', label: 'Support', description: 'Always available' },
+            ].map((item, index) => (
+              <div key={index} className="rounded-lg bg-white p-4 text-center">
+                <p className="text-2xl font-black text-brand-700">{item.count}</p>
+                <p className="mt-1 font-bold text-surface-900">{item.label}</p>
+                <p className="mt-1 text-xs text-surface-600">{item.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action */}
+      <section className="rounded-[1.5rem] border border-surface-200 bg-white p-6 text-center shadow-sm sm:p-8">
+        <h3 className="text-xl font-black text-surface-900">Ready to explore?</h3>
+        <p className="mt-2 text-surface-700">
+          Start browsing our products, check your cart, or learn about our achievements.
+        </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Link
+            to="/projects"
+            className="rounded-lg bg-brand-700 px-5 py-2 font-semibold text-white transition hover:bg-brand-800"
+          >
+            View All Products
+          </Link>
+          <Link
+            to="/achievements"
+            className="rounded-lg border border-surface-300 px-5 py-2 font-semibold text-surface-700 transition hover:bg-surface-100"
+          >
+            Learn About Us
+          </Link>
+        </div>
+      </section>
     <section className="space-y-8 pb-4">
       <div className="relative overflow-hidden rounded-[2.25rem] border border-accent-200/70 bg-gradient-to-br from-accent-50 via-white to-accent-100/80 px-6 py-10 shadow-[0_22px_70px_rgba(180,83,9,0.18)] sm:px-8 lg:px-10">
         <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-accent-200/60 blur-2xl" />
@@ -91,17 +145,14 @@ export default function AboutPage() {
             SKC Enterprises
           </p>
           <h1 className="text-4xl font-black leading-tight text-surface-900 sm:text-5xl">
-            Disclaimer, Pricing Policy, and Order Terms
+            Building a Stronger Future, Together
           </h1>
-          <p className="text-base leading-8 text-surface-700 sm:text-lg">
-            Review the official SKC commercial terms below. Open each section to quickly read what applies to stock, prices, taxes, orders, dispatch, and claims.
-          </p>
         </div>
       </div>
 
       <section className="space-y-4">
         <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent-700">
-          Interactive Policy Sections
+          FAQ
         </p>
 
         <div className="space-y-3">
@@ -136,5 +187,6 @@ export default function AboutPage() {
         </div>
       </section>
     </section>
+    </>
   )
 }
