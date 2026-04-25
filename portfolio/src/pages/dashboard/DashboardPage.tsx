@@ -1,10 +1,14 @@
 import { useAuth } from '@/features/auth/context/AuthContext'
 import { Link } from 'react-router-dom'
+import { getStoredLeadSession } from '@/features/leads/services/leadAuthService'
 
 export default function DashboardPage() {
   const { user } = useAuth()
+  const leadUser = typeof window !== 'undefined' ? getStoredLeadSession() : null
+  const activeUser = user ?? leadUser
+  const isLeadUser = !user && !!leadUser
 
-  const firstName = user?.name?.split(' ')[0] ?? 'Admin'
+  const firstName = activeUser?.name?.split(' ')[0] ?? 'User'
 
   const quickLinks = [
     {
@@ -39,8 +43,8 @@ export default function DashboardPage() {
 
   const dashboardStats = [
     { label: 'Account Status', value: 'Active', icon: '✓', badge: 'Verified' },
-    { label: 'User Role', value: 'Admin', icon: '👤', badge: 'Premium' },
-    { label: 'Email', value: user?.email ?? 'Not set', icon: '✉️', badge: 'Confirmed' },
+    { label: 'User Role', value: isLeadUser ? 'Lead' : 'Admin', icon: '👤', badge: 'Premium' },
+    { label: 'Email', value: activeUser?.email ?? 'Not set', icon: '✉️', badge: 'Confirmed' },
   ]
 
   return (
@@ -62,8 +66,9 @@ export default function DashboardPage() {
               Hey, {firstName}! 👋
             </h1>
             <p className="mt-3 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
-              You're logged in as an admin. Use this dashboard to navigate the portfolio, manage your cart, 
-              and explore our products and achievements.
+              {isLeadUser
+                ? "You're logged in as a lead. Use this dashboard to browse products, manage your cart, and keep your profile updated."
+                : "You're logged in as an admin. Use this dashboard to navigate the portfolio, manage your cart, and explore our products and achievements."}
             </p>
           </div>
 

@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '@/features/auth/context/AuthContext'
-import { shopService } from '@/features/shop/services/shopService'
+import { getShopErrorDetails, shopService } from '@/features/shop/services/shopService'
 import { useCart } from '@/features/shop/context/CartContext'
 import { mockProducts } from '@/features/content/mockData'
 import type { Product } from '@/shared/types/content'
@@ -10,7 +9,6 @@ import type { Review } from '@/shared/types/shop'
 
 export default function ProjectsPage() {
   const navigate = useNavigate()
-  const { isAuthenticated } = useAuth()
   const { getItemQty, addOrIncrement, setQuantity, pendingByProductId } = useCart()
   const [products, setProducts] = useState<Product[]>([])
   const [productsLoading, setProductsLoading] = useState(true)
@@ -26,7 +24,7 @@ export default function ProjectsPage() {
   const [reviewRating, setReviewRating] = useState(5)
   const [reviewList, setReviewList] = useState<Review[]>([])
   const isLeadLoggedIn = typeof window !== 'undefined' && !!sessionStorage.getItem('portfolio.lead.session')
-  const canUseCart = isAuthenticated || isLeadLoggedIn
+  const canUseCart = isLeadLoggedIn
 
   const emptyDataFallbackEnabled = !import.meta.env.PROD && import.meta.env.VITE_ENABLE_EMPTY_DATA_MOCK !== 'false'
 
@@ -69,8 +67,8 @@ export default function ProjectsPage() {
       setStatus('Product added to cart.')
       setError(null)
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Login as lead to add cart items'
-      setError(message)
+      const details = getShopErrorDetails(err, 'Sign in as lead to add cart items.')
+      setError(details.message)
       setStatus(null)
     }
   }
@@ -81,7 +79,8 @@ export default function ProjectsPage() {
       setError(null)
       setStatus(nextQty <= 0 ? 'Product removed from cart.' : null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update quantity')
+      const details = getShopErrorDetails(err, 'Failed to update cart quantity.')
+      setError(details.message)
       setStatus(null)
     }
   }
