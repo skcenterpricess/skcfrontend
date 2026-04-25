@@ -159,6 +159,24 @@ export default function CartPage() {
     void hydrate()
   }, [])
 
+  useEffect(() => {
+    setSelectedAddressId((currentAddressId) => {
+      if (addresses.some((address) => address._id === currentAddressId)) {
+        return currentAddressId
+      }
+
+      return addresses[0]?._id || ''
+    })
+  }, [addresses])
+
+  const savedAddressId = useMemo(() => {
+    if (addresses.some((address) => address._id === selectedAddressId)) {
+      return selectedAddressId
+    }
+
+    return addresses[0]?._id || ''
+  }, [addresses, selectedAddressId])
+
   const handleSavedAddressChange = (addressId: string) => {
     setSelectedAddressId(addressId)
     setUseNewAddress(false)
@@ -166,9 +184,9 @@ export default function CartPage() {
 
   const orderButtonDisabled = useMemo(() => {
     if (!cart || cart.items.length === 0) return true
-    if (!useNewAddress) return !selectedAddressId
+    if (!useNewAddress) return !savedAddressId
     return !shipping.fullName || !shipping.phone || !shipping.line1 || !shipping.city || !shipping.state || !shipping.pincode
-  }, [cart, shipping, selectedAddressId, useNewAddress])
+  }, [cart, savedAddressId, shipping, useNewAddress])
 
   const updateCartQty = async (productId: string, quantity: number) => {
     if (isCartMutating || isSubmitting) return
@@ -202,7 +220,8 @@ export default function CartPage() {
     if (isSubmitting || isCartMutating) return
 
     const normalizedShipping = normalizeShippingAddress(shipping)
-    const validationError = validateCheckoutInput(cart, normalizedShipping, selectedAddressId, useNewAddress)
+    const checkoutAddressId = useNewAddress ? '' : savedAddressId
+    const validationError = validateCheckoutInput(cart, normalizedShipping, checkoutAddressId, useNewAddress)
     if (validationError) {
       setError(validationError)
       return
@@ -213,7 +232,7 @@ export default function CartPage() {
     setSuccess('')
 
     try {
-      let addressId = selectedAddressId.trim()
+      let addressId = checkoutAddressId.trim()
       if (useNewAddress) {
         const createdAddress = await shopService.createAddress(normalizedShipping)
         addressId = createdAddress._id
@@ -403,7 +422,7 @@ export default function CartPage() {
                   <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_auto_auto]">
                     <select
                       className="ui-input"
-                      value={selectedAddressId}
+                      value={savedAddressId}
                       onChange={(event) => handleSavedAddressChange(event.target.value)}
                       disabled={isSubmitting || isCartMutating}
                     >
@@ -416,8 +435,8 @@ export default function CartPage() {
                     <button
                       type="button"
                       className="ui-btn-secondary"
-                      onClick={() => handleSavedAddressChange(selectedAddressId || addresses[0]?._id || '')}
-                      disabled={isSubmitting || isCartMutating || !selectedAddressId}
+                      onClick={() => handleSavedAddressChange(savedAddressId)}
+                      disabled={isSubmitting || isCartMutating || !savedAddressId}
                     >
                       Use selected
                     </button>
