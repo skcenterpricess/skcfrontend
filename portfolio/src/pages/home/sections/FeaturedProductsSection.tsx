@@ -7,6 +7,7 @@ interface FeaturedProductsSectionProps {
   products: Product[]
   cartStatus: string | null
   cartError: string | null
+  onAddToCart: (productId: string) => void
 }
 
 export function FeaturedProductsSection({
@@ -14,6 +15,7 @@ export function FeaturedProductsSection({
   products,
   cartStatus,
   cartError,
+  onAddToCart,
 }: FeaturedProductsSectionProps) {
   const navigate = useNavigate()
 
@@ -29,38 +31,27 @@ export function FeaturedProductsSection({
     <section className={sectionShell}>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-brand-700">
-            Featured Products
-          </p>
-          <h2 className="mt-2 text-3xl font-black text-brand-900">
-            Products worth looking twice at
-          </h2>
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-brand-700">Featured Products</p>
+          <h2 className="mt-2 text-3xl font-black text-brand-900">Products worth looking twice at</h2>
         </div>
         <p className="max-w-xl text-sm leading-6 text-brand-700">
           The best-performing items surface here with live pricing, stock, and version detail.
         </p>
       </div>
 
-      {cartStatus && (
+      {cartStatus ? (
         <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl bg-success-50 px-4 py-3 text-sm text-success-700">
           <span>{cartStatus}</span>
           <Link to="/cart" className="font-semibold text-success-700 underline-offset-2 hover:underline">
             Go to cart
           </Link>
         </div>
-      )}
-
-      {cartError && (
-        <p className="mt-4 rounded-2xl bg-danger-50 px-4 py-3 text-sm text-danger-700">
-          {cartError}
-        </p>
-      )}
+      ) : null}
+      {cartError ? <p className="mt-4 rounded-2xl bg-danger-50 px-4 py-3 text-sm text-danger-700">{cartError}</p> : null}
 
       <div className="mt-6">
         {isLoading ? (
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {loadingCards}
-          </div>
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{loadingCards}</div>
         ) : products.length > 0 ? (
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {products.map((product) => (
@@ -69,9 +60,9 @@ export function FeaturedProductsSection({
                 className="group rounded-[1.5rem] border border-brand-100 bg-white p-5 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl"
               >
                 <div
+                  className="cursor-pointer"
                   role="button"
                   tabIndex={0}
-                  className="cursor-pointer"
                   onClick={() => navigate(`/products/${product._id}`)}
                   onKeyDown={(event) => {
                     if (event.key === 'Enter' || event.key === ' ') {
@@ -81,16 +72,14 @@ export function FeaturedProductsSection({
                   }}
                 >
                   <div className="mb-4 overflow-hidden rounded-[1.2rem] border border-brand-100 bg-surface-100">
-                    {product.images && product.images[0] && product.images[0].url ? (
+                    {product.images?.[0]?.url ? (
                       <img
                         src={product.images[0].url}
-                        alt={product.name || 'Product'}
+                        alt={product.name}
                         className="h-44 w-full object-cover transition duration-300 group-hover:scale-105"
                       />
                     ) : (
-                      <div className="flex h-44 items-center justify-center text-sm text-brand-600">
-                        No product image
-                      </div>
+                      <div className="flex h-44 items-center justify-center text-sm text-brand-600">No product image</div>
                     )}
                   </div>
 
@@ -100,32 +89,29 @@ export function FeaturedProductsSection({
                         {product.size}
                         {product.version ? ` · ${product.version}` : ''}
                       </p>
-                      <h3 className="mt-2 text-xl font-bold text-brand-900">
-                        {product.name}
-                      </h3>
+                      <h3 className="mt-2 text-xl font-bold text-brand-900">{product.name}</h3>
                     </div>
                     <div className="rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">
-                      Stock {product.stok ?? 0}
+                      Stock {product.stok}
                     </div>
                   </div>
 
-                  <p className="mt-4 line-clamp-3 text-sm leading-6 text-brand-700">
-                    {product.description || ''}
-                  </p>
+                  <p className="mt-4 line-clamp-3 text-sm leading-6 text-brand-700">{product.description}</p>
 
                   <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
                     <div className="rounded-2xl bg-surface-100 p-3">
                       <p className="text-xs uppercase tracking-[0.2em] text-brand-600">Offer</p>
-                      <p className="mt-1 text-lg font-bold text-brand-900">
-                        Rs. {product.coopan_price ?? 0}
-                      </p>
+                      <p className="mt-1 text-lg font-bold text-brand-900">Rs. {product.coopan_price}</p>
                     </div>
                     <div className="rounded-2xl bg-surface-100 p-3 text-right">
                       <p className="text-xs uppercase tracking-[0.2em] text-brand-600">Marked</p>
-                      <p className="mt-1 text-lg font-semibold text-brand-400 line-through">
-                        Rs. {product.marked_price ?? 0}
-                      </p>
+                      <p className="mt-1 text-lg font-semibold text-brand-400 line-through">Rs. {product.marked_price}</p>
                     </div>
+                  </div>
+
+                  <div className="mt-4 flex items-center justify-between text-xs text-brand-600">
+                    <span>Base price Rs. {product.base_price}</span>
+                    <span className="rounded-full bg-accent-100 px-2.5 py-1 font-medium text-accent-700">Live product</span>
                   </div>
                 </div>
 
@@ -133,6 +119,14 @@ export function FeaturedProductsSection({
                   <Link to={`/products/${product._id}`} className="ui-btn-secondary text-center">
                     View details
                   </Link>
+                  <button
+                    type="button"
+                    className="ui-btn-primary"
+                    onClick={() => onAddToCart(product._id)}
+                    disabled={product.stok <= 0}
+                  >
+                    {product.stok <= 0 ? 'Out of stock' : 'Add to cart'}
+                  </button>
                 </div>
               </article>
             ))}
