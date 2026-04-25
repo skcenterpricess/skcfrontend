@@ -49,7 +49,7 @@ export default function LeadRegisterPage() {
         password: payload.password,
       })
       setForm((prev) => ({ ...prev, email: payload.email, phone: payload.phone, name: payload.name, password: '', confirmPassword: '' }))
-      navigate('/lead/profile', { replace: true, state: { leadSession: user } })
+      navigate('/dashboard', { replace: true, state: { leadSession: user } })
     } catch (err) {
       if (axios.isAxiosError<{ message?: string }>(err)) {
         setError(err.response?.data?.message || 'Unable to register lead account right now.')

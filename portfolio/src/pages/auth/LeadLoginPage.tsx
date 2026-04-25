@@ -29,7 +29,7 @@ export default function LeadLoginPage() {
       const user = await leadAuthService.login({ email: normalizedEmail, password: normalizedPassword })
       setEmail(normalizedEmail)
       setPassword('')
-      navigate('/lead/profile', { replace: true, state: { leadSession: user } })
+      navigate('/dashboard', { replace: true, state: { leadSession: user } })
     } catch (err) {
       if (axios.isAxiosError<{ message?: string }>(err)) {
         setError(err.response?.data?.message || 'Invalid lead credentials.')
