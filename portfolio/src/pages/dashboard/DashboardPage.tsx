@@ -5,8 +5,8 @@ import { getStoredLeadSession } from '@/features/leads/services/leadAuthService'
 export default function DashboardPage() {
   const { user } = useAuth()
   const leadUser = typeof window !== 'undefined' ? getStoredLeadSession() : null
-  const activeUser = user ?? leadUser
-  const isLeadUser = !user && !!leadUser
+  const activeUser = leadUser ?? user
+  const isLeadUser = !!leadUser
 
   const firstName = activeUser?.name?.split(' ')[0] ?? 'User'
 

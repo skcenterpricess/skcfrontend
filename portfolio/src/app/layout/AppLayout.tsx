@@ -59,11 +59,11 @@ export default function AppLayout() {
   const isLeadLoggedIn = !!leadSessionUser
 
   const displayName = useMemo(() => {
-    if (isAuthenticated && user?.name) {
-      return user.name
-    }
     if (isLeadLoggedIn && leadSessionUser?.name) {
       return leadSessionUser.name
+    }
+    if (isAuthenticated && user?.name) {
+      return user.name
     }
     return ''
   }, [isAuthenticated, isLeadLoggedIn, leadSessionUser?.name, user?.name])
