@@ -128,27 +128,13 @@ export default function AboutPage() {
           >
             View All Products
           </Link>
-          <Link
-            to="/achievements"
-            className="rounded-lg border border-surface-300 px-5 py-2 font-semibold text-surface-700 transition hover:bg-surface-100"
-          >
-            Learn About Us
-          </Link>
+          
         </div>
       </section>
     <section className="space-y-8 pb-4">
-      <div className="relative overflow-hidden rounded-[2.25rem] border border-accent-200/70 bg-gradient-to-br from-accent-50 via-white to-accent-100/80 px-6 py-10 shadow-[0_22px_70px_rgba(180,83,9,0.18)] sm:px-8 lg:px-10">
-        <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-accent-200/60 blur-2xl" />
-        <div className="absolute -bottom-10 left-8 h-28 w-28 rounded-full bg-accent-400/25 blur-2xl" />
-        <div className="relative max-w-3xl space-y-4">
-          <p className="text-sm font-semibold uppercase tracking-[0.26em] text-accent-700">
-            SKC Enterprises
-          </p>
-          <h1 className="text-4xl font-black leading-tight text-surface-900 sm:text-5xl">
-            Building a Stronger Future, Together
-          </h1>
-        </div>
-      </div>
+        <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent-700">
+          Terms & Conditions
+        </p>
 
       <section className="space-y-4">
         <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent-700">
