@@ -60,6 +60,7 @@ export const sidebarSections: SidebarSection[] = [
     defaultOpen: false,
     items: [
       { to: '/products', label: 'Overview' },
+      { to: '/products/create', label: 'Create Product' },
       { to: '/products/list', label: 'Products' },
     ],
   },

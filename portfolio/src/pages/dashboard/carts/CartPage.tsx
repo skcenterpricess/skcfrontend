@@ -72,6 +72,9 @@ const validateCheckoutInput = (
   return null
 }
 
+const getAddressSummary = (address: Address) =>
+  [address.fullName, address.line1, address.city, address.state, address.pincode].filter(Boolean).join(' · ')
+
 export default function CartPage() {
   const [profile, setProfile] = useState<LeadAuthUser | null>(null)
   const [cart, setCart] = useState<Cart | null>(null)
@@ -156,6 +159,11 @@ export default function CartPage() {
     void hydrate()
   }, [])
 
+  const handleSavedAddressChange = (addressId: string) => {
+    setSelectedAddressId(addressId)
+    setUseNewAddress(false)
+  }
+
   const orderButtonDisabled = useMemo(() => {
     if (!cart || cart.items.length === 0) return true
     if (!useNewAddress) return !selectedAddressId
@@ -205,8 +213,8 @@ export default function CartPage() {
     setSuccess('')
 
     try {
-      let addressId = selectedAddressId
-      if (useNewAddress || !addressId) {
+      let addressId = selectedAddressId.trim()
+      if (useNewAddress) {
         const createdAddress = await shopService.createAddress(normalizedShipping)
         addressId = createdAddress._id
         setAddresses((prev) => {
@@ -215,6 +223,11 @@ export default function CartPage() {
         })
         setSelectedAddressId(createdAddress._id)
         setUseNewAddress(false)
+      }
+
+      if (!addressId) {
+        setError('Please select an address before placing the order.')
+        return
       }
 
       await shopService.placeOrder(addressId, customerNote.trim())
@@ -391,20 +404,20 @@ export default function CartPage() {
                     <select
                       className="ui-input"
                       value={selectedAddressId}
-                      onChange={(event) => setSelectedAddressId(event.target.value)}
+                      onChange={(event) => handleSavedAddressChange(event.target.value)}
                       disabled={isSubmitting || isCartMutating}
                     >
                       {addresses.map((address) => (
                         <option key={address._id} value={address._id}>
-                          {address.fullName} · {address.city} · {address.pincode}
+                          {getAddressSummary(address)}
                         </option>
                       ))}
                     </select>
                     <button
                       type="button"
                       className="ui-btn-secondary"
-                      onClick={() => setUseNewAddress(false)}
-                      disabled={isSubmitting || isCartMutating}
+                      onClick={() => handleSavedAddressChange(selectedAddressId || addresses[0]?._id || '')}
+                      disabled={isSubmitting || isCartMutating || !selectedAddressId}
                     >
                       Use selected
                     </button>

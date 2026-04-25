@@ -78,7 +78,12 @@ export interface Order {
 
 export interface Review {
   _id: string
-  productId: string
+  productId: string | PopulatedProductRef
+  orderId?: string | {
+    _id: string
+    status: Order['status']
+    createdAt: string
+  }
   leadId: {
     _id: string
     name: string
