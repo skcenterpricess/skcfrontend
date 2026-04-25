@@ -87,7 +87,7 @@ export default function AppLayout() {
     { to: '/projects', label: 'Products' },
     { to: '/about', label: 'About' },
     { to: '/contact', label: 'Contact' },
-    ...(isAuthenticated ? [{ to: '/dashboard', label: 'Dashboard' }] : []),
+    ...(isAuthenticated || isLeadLoggedIn ? [{ to: '/dashboard', label: 'Dashboard' }] : []),
   ]
 
   return (

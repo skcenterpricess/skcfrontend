@@ -54,6 +54,7 @@ function AccountMenu({
   setIsAccountMenuOpen,
   firstLetter,
   profileUpdatePath,
+  showDashboardLink,
   onLogout,
   isMobile,
   onAfterAction,
@@ -62,6 +63,7 @@ function AccountMenu({
   setIsAccountMenuOpen: (value: boolean) => void
   firstLetter: string
   profileUpdatePath: string
+  showDashboardLink: boolean
   onLogout: () => void | Promise<void>
   isMobile?: boolean
   onAfterAction?: () => void
@@ -95,6 +97,18 @@ function AccountMenu({
           >
             Update Profile
           </Link>
+          {showDashboardLink ? (
+            <Link
+              className="block rounded-lg px-3 py-2 text-sm font-medium text-brand-700 hover:bg-brand-50"
+              to="/dashboard"
+              onClick={() => {
+                setIsAccountMenuOpen(false)
+                onAfterAction?.()
+              }}
+            >
+              Dashboard
+            </Link>
+          ) : null}
           <button
             type="button"
             className="mt-1 block w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-brand-700 hover:bg-brand-50"
@@ -162,6 +176,7 @@ export function AppHeader({
                 setIsAccountMenuOpen={setIsAccountMenuOpen}
                 firstLetter={firstLetter}
                 profileUpdatePath={profileUpdatePath}
+                showDashboardLink={isAuthenticated || isLeadLoggedIn}
                 onLogout={onLogout}
               />
             </div>
@@ -208,6 +223,7 @@ export function AppHeader({
                 setIsAccountMenuOpen={setIsAccountMenuOpen}
                 firstLetter={firstLetter}
                 profileUpdatePath={profileUpdatePath}
+                showDashboardLink={isAuthenticated || isLeadLoggedIn}
                 onLogout={onLogout}
                 isMobile
                 onAfterAction={() => setIsMenuOpen(false)}

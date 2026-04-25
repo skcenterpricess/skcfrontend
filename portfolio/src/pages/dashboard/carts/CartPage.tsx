@@ -2,9 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import axios from 'axios'
 import { Link } from 'react-router-dom'
-import { leadAuthService, type LeadAuthUser } from '@/features/leads/services/leadAuthService'
-import { shopService } from '@/features/shop/services/shopService'
+import { clearStoredLeadSession, leadAuthService, type LeadAuthUser } from '@/features/leads/services/leadAuthService'
+import { getShopErrorDetails, shopService } from '@/features/shop/services/shopService'
 import type { Address, Cart, Order, ShippingAddress } from '@/shared/types/shop'
+
+const LEAD_SESSION_KEY = 'portfolio.lead.session'
 
 const emptyShipping: ShippingAddress = {
   fullName: '',
@@ -84,10 +86,26 @@ export default function CartPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
+  const resetLeadSessionOnUnauthorized = () => {
+    clearStoredLeadSession()
+    window.dispatchEvent(new CustomEvent('lead:session:changed'))
+  }
+
   const hydrate = async () => {
     setIsLoading(true)
     setError('')
     setSuccess('')
+
+    const hasLeadSession = !!sessionStorage.getItem(LEAD_SESSION_KEY)
+    if (!hasLeadSession) {
+      setProfile(null)
+      setCart(null)
+      setOrders([])
+      setAddresses([])
+      setIsUnauthorized(true)
+      setIsLoading(false)
+      return
+    }
 
     try {
       const lead = await leadAuthService.me()
@@ -121,9 +139,11 @@ export default function CartPage() {
       setIsUnauthorized(false)
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 401) {
+        resetLeadSessionOnUnauthorized()
         setIsUnauthorized(true)
       } else {
-        setError('Unable to load your cart right now.')
+        const details = getShopErrorDetails(err, 'Unable to load your cart right now.')
+        setError(details.message)
       }
     } finally {
       setIsLoading(false)
@@ -156,7 +176,12 @@ export default function CartPage() {
       setError('')
       setSuccess('')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update cart')
+      const details = getShopErrorDetails(err, 'Failed to update cart quantity.')
+      if (details.reason === 'unauthorized') {
+        resetLeadSessionOnUnauthorized()
+        setIsUnauthorized(true)
+      }
+      setError(details.message)
     } finally {
       setIsCartMutating(false)
     }
@@ -198,7 +223,12 @@ export default function CartPage() {
       setCustomerNote('')
       setSuccess('Order placed. Sales team will contact you shortly.')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to place order')
+      const details = getShopErrorDetails(err, 'Failed to place order.')
+      if (details.reason === 'unauthorized') {
+        resetLeadSessionOnUnauthorized()
+        setIsUnauthorized(true)
+      }
+      setError(details.message)
     } finally {
       setIsSubmitting(false)
     }
