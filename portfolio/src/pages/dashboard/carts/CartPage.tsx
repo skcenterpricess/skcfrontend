@@ -42,7 +42,9 @@ const validateCheckoutInput = (
     return 'Your cart is empty. Add items before placing an order.'
   }
 
-  const hasInvalidItem = cart.items.some((item) => item.quantity < 1 || item.quantity > Math.max(0, item.productId.stok ?? 0))
+  const hasInvalidItem = cart.items.some(
+    (item) => !item.productId?._id || item.quantity < 1 || item.quantity > Math.max(0, item.productId?.stok ?? 0),
+  )
   if (hasInvalidItem) {
     return 'Cart quantities are out of sync with stock. Please update your cart and try again.'
   }
@@ -163,10 +165,10 @@ export default function CartPage() {
   const updateCartQty = async (productId: string, quantity: number) => {
     if (isCartMutating || isSubmitting) return
 
-    const item = cart?.items.find((record) => record.productId._id === productId)
+    const item = cart?.items.find((record) => record.productId?._id === productId)
     if (!item) return
 
-    const nextQty = Math.min(Math.max(0, quantity), Math.max(0, item.productId.stok ?? 0))
+    const nextQty = Math.min(Math.max(0, quantity), Math.max(0, item.productId?.stok ?? 0))
 
     try {
       setIsCartMutating(true)
@@ -295,15 +297,21 @@ export default function CartPage() {
 
           <div className="mt-5 space-y-3">
             {cart && cart.items.length > 0 ? (
-              cart.items.map((item) => (
-                <article key={item.productId._id} className="rounded-2xl border border-surface-200 p-4">
+              cart.items.map((item, index) => {
+                const productId = item.productId?._id
+                if (!productId) {
+                  return null
+                }
+
+                return (
+                <article key={productId || `cart-item-${index}`} className="rounded-2xl border border-surface-200 p-4">
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="space-y-1">
                       <Link
-                        to={`/products/${item.productId._id}`}
+                        to={`/products/${productId}`}
                         className="text-lg font-bold text-surface-900 transition hover:text-brand-700"
                       >
-                        {item.productId.name}
+                        {item.productId?.name || 'Product'}
                       </Link>
                       <p className="text-sm text-surface-700">
                         Rs. {item.unitPrice} each · Line total Rs. {item.lineTotal}
@@ -314,8 +322,8 @@ export default function CartPage() {
                       <button
                         type="button"
                         className="flex h-8 w-8 items-center justify-center rounded-full border border-surface-300 text-lg font-semibold text-surface-700 transition hover:bg-brand-700 hover:text-white"
-                        onClick={() => updateCartQty(item.productId._id, item.quantity - 1)}
-                        aria-label={`Decrease quantity for ${item.productId.name}`}
+                        onClick={() => updateCartQty(productId, item.quantity - 1)}
+                        aria-label={`Decrease quantity for ${item.productId?.name || 'product'}`}
                         disabled={isCartMutating || isSubmitting}
                       >
                         -
@@ -324,9 +332,9 @@ export default function CartPage() {
                       <button
                         type="button"
                         className="flex h-8 w-8 items-center justify-center rounded-full border border-surface-300 text-lg font-semibold text-surface-700 transition hover:bg-brand-700 hover:text-white"
-                        onClick={() => updateCartQty(item.productId._id, item.quantity + 1)}
-                        aria-label={`Increase quantity for ${item.productId.name}`}
-                        disabled={isCartMutating || isSubmitting || item.quantity >= (item.productId.stok ?? 0)}
+                        onClick={() => updateCartQty(productId, item.quantity + 1)}
+                        aria-label={`Increase quantity for ${item.productId?.name || 'product'}`}
+                        disabled={isCartMutating || isSubmitting || item.quantity >= (item.productId?.stok ?? 0)}
                       >
                         +
                       </button>
@@ -334,18 +342,19 @@ export default function CartPage() {
                   </div>
 
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm">
-                    <p className="text-surface-500">Stock {item.productId.stok}</p>
+                    <p className="text-surface-500">Stock {item.productId?.stok ?? 0}</p>
                     <button
                       type="button"
                       className="font-semibold text-danger-600 transition hover:text-danger-700"
-                      onClick={() => updateCartQty(item.productId._id, 0)}
+                      onClick={() => updateCartQty(productId, 0)}
                       disabled={isCartMutating || isSubmitting}
                     >
                       Remove item
                     </button>
                   </div>
                 </article>
-              ))
+                )
+              })
             ) : (
               <div className="rounded-2xl border border-dashed border-surface-300 bg-surface-50 p-6 text-sm text-surface-700">
                 Your cart is empty. Browse products and add items to continue.

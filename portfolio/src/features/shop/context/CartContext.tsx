@@ -106,7 +106,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [refreshCart])
 
   const getItemQty = useCallback(
-    (productId: string) => cart?.items.find((item) => item.productId._id === productId)?.quantity ?? 0,
+    (productId: string) => cart?.items.find((item) => item.productId?._id === productId)?.quantity ?? 0,
     [cart],
   )
 
