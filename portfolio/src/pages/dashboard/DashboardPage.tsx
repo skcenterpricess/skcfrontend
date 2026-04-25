@@ -51,7 +51,7 @@ export default function DashboardPage() {
     <section className="space-y-8 pb-4">
       {/* Welcome Hero */}
       <div className="relative overflow-hidden rounded-[2.25rem] bg-gradient-to-br from-surface-900 via-brand-900 to-brand-800 px-6 py-8 text-white sm:px-8 lg:px-10">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(59,130,246,0.2),_transparent_40%),radial-gradient(circle_at_bottom_left,_rgba(245,158,11,0.12),_transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(245,130,32,0.22),_transparent_40%),radial-gradient(circle_at_bottom_left,_rgba(194,65,12,0.16),_transparent_50%)]" />
 
         <div className="relative space-y-4">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/8 px-4 py-2 text-xs uppercase tracking-[0.28em] text-accent-200 backdrop-blur">

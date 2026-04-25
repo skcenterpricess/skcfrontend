@@ -266,7 +266,7 @@ export default function CartPage() {
 
   return (
     <section className="space-y-6 pb-4">
-      <div className="rounded-[2rem] bg-brand-900 px-6 py-6 text-white shadow-[0_24px_90px_rgba(30,58,138,0.28)] sm:px-8">
+      <div className="rounded-[2rem] bg-brand-900 px-6 py-6 text-white shadow-[0_24px_90px_rgba(124,45,18,0.3)] sm:px-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-[0.24em] text-accent-200">Cart & Checkout</p>
