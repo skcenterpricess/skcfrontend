@@ -294,17 +294,17 @@ export default function CreateProductPage() {
 				<div className="flex flex-wrap items-center justify-end gap-2 pt-2">
 					<Link
 						to="/products/list"
-						className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+						className="rounded-lg border border-slate-300 bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
 					>
 						Cancel
 					</Link>
 					<button
-						type="submit"
-						disabled={isSubmitting}
-						className="rounded-lg bg-admin-700 px-4 py-2 text-sm font-medium text-white hover:bg-admin-900 disabled:opacity-60"
-					>
-						{isSubmitting ? 'Saving product...' : 'Save Product'}
-					</button>
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+>
+                        {isSubmitting ? 'Saving product...' : 'Save Product'}
+                    </button>
 				</div>
 			</form>
 		</section>
