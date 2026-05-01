@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { useAuth } from '@/features/auth/context/AuthContext'
 import { useSessionPreferences } from '@/app/providers/SessionPreferencesProvider'
@@ -23,7 +23,6 @@ export default function AppLayout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
   const [leadSessionUser, setLeadSessionUser] = useState<LeadSessionUser | null>(null)
-  const accountMenuRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     const loadLeadSession = () => {
@@ -46,10 +45,12 @@ export default function AppLayout() {
 
   useEffect(() => {
     const handlePointerDown = (event: MouseEvent) => {
-      if (!accountMenuRef.current) return
-      if (!accountMenuRef.current.contains(event.target as Node)) {
-        setIsAccountMenuOpen(false)
+      const target = event.target
+      if (target instanceof Element && target.closest('[data-account-menu-root="true"]')) {
+        return
       }
+
+      setIsAccountMenuOpen(false)
     }
 
     document.addEventListener('mousedown', handlePointerDown)
@@ -59,11 +60,11 @@ export default function AppLayout() {
   const isLeadLoggedIn = !!leadSessionUser
 
   const displayName = useMemo(() => {
-    if (isAuthenticated && user?.name) {
-      return user.name
-    }
     if (isLeadLoggedIn && leadSessionUser?.name) {
       return leadSessionUser.name
+    }
+    if (isAuthenticated && user?.name) {
+      return user.name
     }
     return ''
   }, [isAuthenticated, isLeadLoggedIn, leadSessionUser?.name, user?.name])
@@ -87,11 +88,10 @@ export default function AppLayout() {
     { to: '/projects', label: 'Products' },
     { to: '/about', label: 'About' },
     { to: '/contact', label: 'Contact' },
-    ...(isAuthenticated ? [{ to: '/dashboard', label: 'Dashboard' }] : []),
   ]
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.14),transparent_46%),radial-gradient(circle_at_bottom_right,rgba(245,158,11,0.12),transparent_38%),linear-gradient(180deg,#f8fafc,#f1f5f9)] px-4 py-6 sm:py-8">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(245,130,32,0.14),transparent_46%),radial-gradient(circle_at_bottom_right,rgba(234,88,12,0.12),transparent_38%),linear-gradient(180deg,#f8fafc,#f1f5f9)] px-4 py-6 sm:py-8">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
         <AppHeader
           isAuthenticated={isAuthenticated}
@@ -102,14 +102,13 @@ export default function AppLayout() {
           setIsMenuOpen={setIsMenuOpen}
           isAccountMenuOpen={isAccountMenuOpen}
           setIsAccountMenuOpen={setIsAccountMenuOpen}
-          accountMenuRef={accountMenuRef}
           firstLetter={firstLetter}
           profileUpdatePath={profileUpdatePath}
           onLogout={onLogout}
           navItems={navItems}
         />
 
-        <main className={`${compactMode ? 'space-y-3' : 'space-y-5'} flex-1 rounded-[1.75rem] border border-slate-200 bg-white p-3 shadow-[0_14px_40px_rgba(30,58,138,0.1)] sm:p-4`}>
+        <main className={`${compactMode ? 'space-y-3' : 'space-y-5'} flex-1 rounded-[1.75rem] border border-slate-200 bg-white p-3 shadow-[0_14px_40px_rgba(194,65,12,0.14)] sm:p-4`}>
           <Outlet />
         </main>
 

@@ -7,7 +7,7 @@ interface FeaturedProductsSectionProps {
   products: Product[]
   cartStatus: string | null
   cartError: string | null
-  onAddToCart: (productId: string) => void
+  // onAddToCart: (productId: string) => void
 }
 
 export function FeaturedProductsSection({
@@ -15,7 +15,7 @@ export function FeaturedProductsSection({
   products,
   cartStatus,
   cartError,
-  onAddToCart,
+  // onAddToCart,
 }: FeaturedProductsSectionProps) {
   const navigate = useNavigate()
 
@@ -26,7 +26,6 @@ export function FeaturedProductsSection({
       <div className="mt-4 h-16 animate-pulse rounded-2xl bg-surface-100" />
     </div>
   ))
-
   return (
     <section className={sectionShell}>
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -119,14 +118,14 @@ export function FeaturedProductsSection({
                   <Link to={`/products/${product._id}`} className="ui-btn-secondary text-center">
                     View details
                   </Link>
-                  <button
+                  {/* <button
                     type="button"
                     className="ui-btn-primary"
                     onClick={() => onAddToCart(product._id)}
                     disabled={product.stok <= 0}
                   >
                     {product.stok <= 0 ? 'Out of stock' : 'Add to cart'}
-                  </button>
+                  </button> */}
                 </div>
               </article>
             ))}

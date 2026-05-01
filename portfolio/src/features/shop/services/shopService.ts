@@ -1,7 +1,8 @@
 import { httpClient } from '@/shared/api/httpClient'
 import axios from 'axios'
+import type { LeadAuthUser } from '@/features/leads/services/leadAuthService'
 import type { Product } from '@/shared/types/content'
-import type { Cart, Order, Review, ShippingAddress } from '@/shared/types/shop'
+import type { Address, Cart, Order, Review, ShippingAddress } from '@/shared/types/shop'
 
 export const SHOP_CART_CHANGED_EVENT = 'shop:cart:changed'
 
@@ -39,9 +40,27 @@ interface ListOrdersResult {
   pagination: Pagination
 }
 
+interface ListAddressesResult {
+  records: Address[]
+  pagination: Pagination
+}
+
 interface ListReviewsResult {
   records: Review[]
   pagination: Pagination
+}
+
+interface LeadDashboardResult {
+  user: LeadAuthUser
+  cart: Cart
+  orders: Order[]
+  reviews: Review[]
+  addresses: Address[]
+  pagination: {
+    orders: Pagination
+    reviews: Pagination
+    addresses: Pagination
+  }
 }
 
 interface ProductResponse {
@@ -187,9 +206,34 @@ export const shopService = {
     return response.data.data.cart
   },
 
-  async placeOrder(shippingAddress: ShippingAddress, customerNote: string): Promise<Order> {
+  async listMyAddresses(page = 1, limit = 20): Promise<ListAddressesResult> {
+    const response = await httpClient.get<{ data: { addresses: Address[] }; pagination: Pagination }>(
+      `/address/me?page=${page}&limit=${limit}&sortOrder=desc`,
+    )
+
+    return {
+      records: response.data.data.addresses,
+      pagination: response.data.pagination,
+    }
+  },
+
+  async createAddress(payload: ShippingAddress): Promise<Address> {
+    const response = await httpClient.post<{ data: { address: Address } }>('/address', payload)
+    return response.data.data.address
+  },
+
+  async updateAddress(addressId: string, payload: Partial<ShippingAddress>): Promise<Address> {
+    const response = await httpClient.put<{ data: { address: Address } }>(`/address/me/${addressId}`, payload)
+    return response.data.data.address
+  },
+
+  async deleteAddress(addressId: string): Promise<void> {
+    await httpClient.delete(`/address/me/${addressId}`)
+  },
+
+  async placeOrder(addressId: string, customerNote: string): Promise<Order> {
     const response = await httpClient.post<{ data: { order: Order } }>('/orders/place', {
-      shippingAddress,
+      addressId,
       customerNote,
     })
     return response.data.data.order
@@ -204,6 +248,32 @@ export const shopService = {
       records: response.data.data.orders,
       pagination: response.data.pagination,
     }
+  },
+
+  async getMyDashboard(): Promise<LeadDashboardResult> {
+    const response = await httpClient.get<{ data: LeadDashboardResult }>('/leads/me/dashboard')
+    emitCartChanged(response.data.data.cart)
+    return response.data.data
+  },
+
+  async listMyReviews(page = 1, limit = 10): Promise<ListReviewsResult> {
+    const response = await httpClient.get<{ data: { reviews: Review[] }; pagination: Pagination }>(
+      `/leads/me/reviews?page=${page}&limit=${limit}&sortOrder=desc`,
+    )
+
+    return {
+      records: response.data.data.reviews,
+      pagination: response.data.pagination,
+    }
+  },
+
+  async updateReview(reviewId: string, payload: { rating?: number; title?: string; comment?: string }): Promise<Review> {
+    const response = await httpClient.put<{ data: { review: Review } }>(`/reviews/${reviewId}`, payload)
+    return response.data.data.review
+  },
+
+  async deleteReview(reviewId: string): Promise<void> {
+    await httpClient.delete(`/reviews/${reviewId}`)
   },
 
   async hasPurchasedProduct(productId: string): Promise<boolean> {

@@ -30,6 +30,7 @@ export const router = createBrowserRouter([
       { path: 'lead/register', element: <LeadRegisterPage /> },
       { path: 'lead/login', element: <LeadLoginPage /> },
       { path: 'lead/profile', element: <LeadProfilePage /> },
+      { path: 'lead/dashboard', element: <Navigate to="/dashboard" replace /> },
       {
         path: 'dashboard',
         element: (

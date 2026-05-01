@@ -24,33 +24,15 @@ export const sidebarSections: SidebarSection[] = [
     ],
   },
   {
-    title: 'Hero Slider',
+    title: 'Portfolio',
     roles: ['superadmin'],
     collapsible: true,
     defaultOpen: false,
     items: [
-      { to: '/content/header-slider', label: 'Overview' },
       { to: '/content/header-slider/list', label: 'Slides' },
-    ],
-  },
-  {
-    title: 'Testimonials',
-    roles: ['superadmin'],
-    collapsible: true,
-    defaultOpen: false,
-    items: [
-      { to: '/content/testimonials', label: 'Overview' },
       { to: '/content/testimonials/list', label: 'Testimonials' },
-    ],
-  },
-  {
-    title: 'Achievements',
-    roles: ['superadmin'],
-    collapsible: true,
-    defaultOpen: false,
-    items: [
-      { to: '/content/achievements', label: 'Overview' },
       { to: '/content/achievements/list', label: 'Achievements' },
+
     ],
   },
   {
@@ -60,6 +42,7 @@ export const sidebarSections: SidebarSection[] = [
     defaultOpen: false,
     items: [
       { to: '/products', label: 'Overview' },
+      { to: '/products/create', label: 'Create Product' },
       { to: '/products/list', label: 'Products' },
     ],
   },
@@ -81,6 +64,16 @@ export const sidebarSections: SidebarSection[] = [
     items: [
       { to: '/leads', label: 'Overview' },
       { to: '/leads/list', label: 'Leads' },
+    ],
+  },
+  {
+    title: 'Orders',
+    roles: ['superadmin', 'admin'],
+    collapsible: true,
+    defaultOpen: false,
+    items: [
+      { to: '/orders', label: 'Overview' },
+      { to: '/orders/list', label: 'Orders' },
     ],
   },
   {

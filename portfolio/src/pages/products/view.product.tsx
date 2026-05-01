@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { useAuth } from '@/features/auth/context/AuthContext'
 import { getShopErrorDetails, shopService } from '@/features/shop/services/shopService'
 import { useCart } from '@/features/shop/context/CartContext'
 import type { Product } from '@/shared/types/content'
@@ -10,7 +9,6 @@ import type { Review } from '@/shared/types/shop'
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { isAuthenticated } = useAuth()
   const { getItemQty, addOrIncrement, setQuantity, pendingByProductId, isHydrated, isHydrating } = useCart()
   const [product, setProduct] = useState<Product | null>(null)
   const [activeImageIndex, setActiveImageIndex] = useState(0)
@@ -27,7 +25,7 @@ export default function ProductDetailPage() {
   const [comment, setComment] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
   const isLeadLoggedIn = typeof window !== 'undefined' && !!sessionStorage.getItem('portfolio.lead.session')
-  const canUseCart = isAuthenticated || isLeadLoggedIn
+  const canUseCart = isLeadLoggedIn
   const canMutateCart = canUseCart && isHydrated
   const canSubmitReview = isLeadLoggedIn && hasPurchasedProduct
 
@@ -237,7 +235,7 @@ export default function ProductDetailPage() {
 
   return (
     <section className="space-y-6 pb-4">
-      <div className="rounded-[2rem] bg-brand-900 px-6 py-6 text-white shadow-[0_24px_90px_rgba(30,58,138,0.28)] sm:px-8">
+      <div className="rounded-[2rem] bg-brand-900 px-6 py-6 text-white shadow-[0_24px_90px_rgba(124,45,18,0.3)] sm:px-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-[0.24em] text-accent-200">Product Detail</p>
@@ -257,7 +255,7 @@ export default function ProductDetailPage() {
               <div className="absolute left-6 top-6 rounded-full bg-brand-900 px-3 py-1 text-xs font-semibold text-white">
                 {stockLabel}
               </div>
-              <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr] lg:items-center">
+              <div className="space-y-6">
                 <div className="space-y-4">
                   <div className="overflow-hidden rounded-[1.5rem] border border-surface-200 bg-white shadow-sm">
                     {activeProductImage ? (

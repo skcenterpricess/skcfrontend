@@ -42,14 +42,14 @@ export default function LeadRegisterPage() {
 
     setIsSubmitting(true)
     try {
-      await leadAuthService.register({
+      const user = await leadAuthService.register({
         name: payload.name,
         email: payload.email,
         phone: payload.phone,
         password: payload.password,
       })
       setForm((prev) => ({ ...prev, email: payload.email, phone: payload.phone, name: payload.name, password: '', confirmPassword: '' }))
-      navigate('/lead/profile', { replace: true })
+      navigate('/dashboard', { replace: true, state: { leadSession: user } })
     } catch (err) {
       if (axios.isAxiosError<{ message?: string }>(err)) {
         setError(err.response?.data?.message || 'Unable to register lead account right now.')

@@ -2,6 +2,22 @@ import type { Product } from '@/shared/types/content'
 
 type PopulatedProductRef = Partial<Product> & Pick<Product, '_id' | 'name'>
 
+export interface Address {
+  _id: string
+  leadId: string
+  fullName: string
+  phone: string
+  area?: string
+  line1: string
+  line2?: string
+  city: string
+  state: string
+  pincode: string
+  country?: string
+  createdAt: string
+  updatedAt: string
+}
+
 export interface CartItem {
   productId: PopulatedProductRef
   quantity: number
@@ -23,6 +39,7 @@ export interface Cart {
 export interface ShippingAddress {
   fullName: string
   phone: string
+  area?: string
   line1: string
   line2?: string
   city: string
@@ -52,7 +69,7 @@ export interface Order {
     | 'shipped'
     | 'delivered'
     | 'cancelled'
-  shippingAddress: ShippingAddress
+  shippingAddress: Address | string
   customerNote: string
   salesNote: string
   createdAt: string
@@ -61,7 +78,12 @@ export interface Order {
 
 export interface Review {
   _id: string
-  productId: string
+  productId: string | PopulatedProductRef
+  orderId?: string | {
+    _id: string
+    status: Order['status']
+    createdAt: string
+  }
   leadId: {
     _id: string
     name: string
