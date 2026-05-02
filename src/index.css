@@ -3,7 +3,8 @@
 @tailwind utilities;
 
 :root {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Manrope', 'Plus Jakarta Sans', 'Segoe UI', Tahoma, Geneva, Verdana,
+    sans-serif;
 }
 
 * {
@@ -13,25 +14,25 @@
 body {
   margin: 0;
   min-width: 320px;
-  color: #0f172a;
+  color: #1f2937;
   background: #f8fafc;
 }
 
 @layer components {
   .ui-page-card {
-    @apply rounded-2xl border border-slate-200 bg-white p-8 shadow-sm;
+    @apply rounded-2xl border border-brand-200/70 bg-white p-8 shadow-sm;
   }
 
   .ui-page-card-narrow {
-    @apply mx-auto w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-8 shadow-sm;
+    @apply mx-auto w-full max-w-xl rounded-2xl border border-brand-200/70 bg-white p-8 shadow-sm;
   }
 
   .ui-title {
-    @apply text-2xl font-semibold text-slate-900;
+    @apply text-2xl font-semibold text-brand-900;
   }
 
   .ui-subtitle {
-    @apply mt-2 text-sm leading-6 text-slate-600;
+    @apply mt-2 text-sm leading-6 text-slate-700;
   }
 
   .ui-form-grid {
@@ -43,31 +44,31 @@ body {
   }
 
   .ui-input {
-    @apply mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200;
+    @apply mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100;
   }
 
   .ui-textarea {
-    @apply mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200;
+    @apply mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100;
   }
 
   .ui-btn-primary {
-    @apply rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50;
+    @apply rounded-lg bg-brand-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .ui-btn-secondary {
-    @apply rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50;
+    @apply rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-800 transition hover:bg-slate-50;
   }
 
   .ui-link-inline {
-    @apply font-semibold text-slate-900 underline;
+    @apply font-semibold text-brand-800 underline;
   }
 
   .ui-status-error {
-    @apply text-sm text-rose-600;
+    @apply text-sm text-danger-700;
   }
 
   .ui-status-success {
-    @apply text-sm text-emerald-700;
+    @apply text-sm text-success-700;
   }
 
   .ui-status-info {

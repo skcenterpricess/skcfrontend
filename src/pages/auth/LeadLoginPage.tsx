@@ -13,12 +13,23 @@ export default function LeadLoginPage() {
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (isSubmitting) return
+
+    const normalizedEmail = email.trim().toLowerCase()
+    const normalizedPassword = password.trim()
+    if (!normalizedEmail || !normalizedPassword) {
+      setError('Email and password are required.')
+      return
+    }
+
     setError('')
     setIsSubmitting(true)
 
     try {
-      await leadAuthService.login({ email, password })
-      navigate('/lead/profile', { replace: true })
+      const user = await leadAuthService.login({ email: normalizedEmail, password: normalizedPassword })
+      setEmail(normalizedEmail)
+      setPassword('')
+      navigate('/dashboard', { replace: true, state: { leadSession: user } })
     } catch (err) {
       if (axios.isAxiosError<{ message?: string }>(err)) {
         setError(err.response?.data?.message || 'Invalid lead credentials.')
@@ -70,7 +81,7 @@ export default function LeadLoginPage() {
         </button>
       </form>
 
-      <p className="mt-4 text-sm text-slate-600">
+      <p className="mt-4 text-sm text-surface-700">
         Need an account?{' '}
         <Link className="ui-link-inline" to="/lead/register">
           Register as lead

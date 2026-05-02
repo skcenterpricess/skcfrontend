@@ -14,11 +14,26 @@ export default function ContactPage() {
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault()
+    if (isSubmitting) return
+
+    const payload = {
+      name: form.name.trim(),
+      email: form.email.trim().toLowerCase(),
+      phone: form.phone.trim(),
+      message: form.message.trim(),
+      status: 'new' as const,
+    }
+
+    if (!payload.name || !payload.email || !payload.phone || !payload.message) {
+      setStatus('Please complete all fields before submitting.')
+      return
+    }
+
     setIsSubmitting(true)
     setStatus(null)
 
     try {
-      await leadService.register({ ...form, status: 'new' })
+      await leadService.register(payload)
       setStatus('Thanks! Your lead was submitted successfully.')
       setForm({ name: '', email: '', phone: '', message: '' })
     } catch (err) {

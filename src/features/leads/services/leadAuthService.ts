@@ -30,11 +30,32 @@ export interface LeadProfileUpdatePayload {
   password?: string
 }
 
+export function getStoredLeadSession(): LeadAuthUser | null {
+  try {
+    const raw = sessionStorage.getItem(LEAD_SESSION_KEY)
+    if (!raw) {
+      return null
+    }
+
+    return JSON.parse(raw) as LeadAuthUser
+  } catch {
+    return null
+  }
+}
+
+export function setStoredLeadSession(user: LeadAuthUser): void {
+  sessionStorage.setItem(LEAD_SESSION_KEY, JSON.stringify(user))
+}
+
+export function clearStoredLeadSession(): void {
+  sessionStorage.removeItem(LEAD_SESSION_KEY)
+}
+
 export const leadAuthService = {
   async register(payload: LeadRegisterPayload): Promise<LeadAuthUser> {
     const response = await httpClient.post<{ data: { user: LeadAuthUser } }>('/leads/register', payload)
     const user = response.data.data.user
-    sessionStorage.setItem(LEAD_SESSION_KEY, JSON.stringify(user))
+    setStoredLeadSession(user)
     window.dispatchEvent(new CustomEvent(LEAD_SESSION_EVENT))
     return user
   },
@@ -42,21 +63,21 @@ export const leadAuthService = {
   async login(payload: LeadLoginPayload): Promise<LeadAuthUser> {
     const response = await httpClient.post<{ data: { user: LeadAuthUser } }>('/leads/login', payload)
     const user = response.data.data.user
-    sessionStorage.setItem(LEAD_SESSION_KEY, JSON.stringify(user))
+    setStoredLeadSession(user)
     window.dispatchEvent(new CustomEvent(LEAD_SESSION_EVENT))
     return user
   },
 
   async logout(): Promise<void> {
     await httpClient.post('/leads/logout')
-    sessionStorage.removeItem(LEAD_SESSION_KEY)
+    clearStoredLeadSession()
     window.dispatchEvent(new CustomEvent(LEAD_SESSION_EVENT))
   },
 
   async me(): Promise<LeadAuthUser> {
     const response = await httpClient.get<{ data: { user: LeadAuthUser } }>('/leads/me')
     const user = response.data.data.user
-    sessionStorage.setItem(LEAD_SESSION_KEY, JSON.stringify(user))
+    setStoredLeadSession(user)
     window.dispatchEvent(new CustomEvent(LEAD_SESSION_EVENT))
     return user
   },
@@ -64,7 +85,7 @@ export const leadAuthService = {
   async updateProfile(payload: LeadProfileUpdatePayload): Promise<LeadAuthUser> {
     const response = await httpClient.put<{ data: { user: LeadAuthUser } }>('/leads/profile', payload)
     const user = response.data.data.user
-    sessionStorage.setItem(LEAD_SESSION_KEY, JSON.stringify(user))
+    setStoredLeadSession(user)
     window.dispatchEvent(new CustomEvent(LEAD_SESSION_EVENT))
     return user
   },

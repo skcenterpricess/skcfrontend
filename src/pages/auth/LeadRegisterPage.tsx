@@ -18,22 +18,38 @@ export default function LeadRegisterPage() {
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (isSubmitting) return
+
+    const payload = {
+      name: form.name.trim(),
+      email: form.email.trim().toLowerCase(),
+      phone: form.phone.trim(),
+      password: form.password.trim(),
+      confirmPassword: form.confirmPassword.trim(),
+    }
+
+    if (!payload.name || !payload.email || !payload.phone || !payload.password || !payload.confirmPassword) {
+      setError('Please complete all required fields.')
+      return
+    }
+
     setError('')
 
-    if (form.password !== form.confirmPassword) {
+    if (payload.password !== payload.confirmPassword) {
       setError('Passwords do not match.')
       return
     }
 
     setIsSubmitting(true)
     try {
-      await leadAuthService.register({
-        name: form.name,
-        email: form.email,
-        phone: form.phone,
-        password: form.password,
+      const user = await leadAuthService.register({
+        name: payload.name,
+        email: payload.email,
+        phone: payload.phone,
+        password: payload.password,
       })
-      navigate('/lead/profile', { replace: true })
+      setForm((prev) => ({ ...prev, email: payload.email, phone: payload.phone, name: payload.name, password: '', confirmPassword: '' }))
+      navigate('/dashboard', { replace: true, state: { leadSession: user } })
     } catch (err) {
       if (axios.isAxiosError<{ message?: string }>(err)) {
         setError(err.response?.data?.message || 'Unable to register lead account right now.')
@@ -121,7 +137,7 @@ export default function LeadRegisterPage() {
         </button>
       </form>
 
-      <p className="mt-4 text-sm text-slate-600">
+      <p className="mt-4 text-sm text-surface-700">
         Already registered?{' '}
         <Link className="ui-link-inline" to="/lead/login">
           Lead login
